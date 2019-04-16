@@ -10,6 +10,7 @@ public class CredentialsWrapper implements Serializable
 	 */
 	private static final long serialVersionUID = -676427917948317648L;
 	private String username, password;
+	private boolean token;
 	public String getPassword()
 	{
 		return password;
@@ -25,8 +26,6 @@ public class CredentialsWrapper implements Serializable
 		return username;
 	}
 
-	private boolean token;
-	
 	public CredentialsWrapper(String username, String password, boolean token)
 	{
 		this.username = username;
