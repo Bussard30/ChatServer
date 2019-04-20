@@ -3,6 +3,7 @@ package networking.server;
 import java.security.PublicKey;
 
 import networking.types.CredentialsWrapper;
+import networking.types.MessageWrapper;
 import networking.types.Protocol;
 
 
@@ -18,8 +19,12 @@ public enum Requests
 	TRSMT_CREDS("TRSMT_CREDS", NetworkPhases.PRE2, CredentialsWrapper.class),
 	
 	// TRANSMIT (user) CREDENTIALS
-	TRSMT_TOKEN("TRSMT_TOKEN", NetworkPhases.PRE2, String.class);
+	TRSMT_TOKEN("TRSMT_TOKEN", NetworkPhases.PRE2, String.class),
 	
+	TRSMT_MESSAGE("TRSMT_MESSAGE", NetworkPhases.COM, MessageWrapper.class),
+	
+	
+	;
 
 
 	private final String name;

@@ -9,18 +9,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.UUID;
 import java.util.Vector;
-import java.util.concurrent.TimeUnit;
 
 import main.main.Main;
-import networking.exceptions.BadPacketException;
 import networking.logger.Logger;
-import networking.types.Request;
-import networking.types.Response;
+import networking.types.MessageWrapper;
 
 public class Server
 {
@@ -45,8 +40,9 @@ public class Server
 	private volatile Vector<ServerHandler> handlers;
 	private volatile Vector<ServerHandler> unassignedHandlers;
 	private volatile HashMap<ServerThread, Vector<ServerHandler>> assignments;
-	private volatile HashMap<UUID, ServerHandler> uuidAssignments;
-	
+	private volatile HashMap<String, ServerHandler> uuidAssignments;
+	private volatile HashMap<String, MessageWrapper> messages;
+
 	private volatile Vector<Integer> numbers;
 
 	/**
@@ -57,12 +53,12 @@ public class Server
 	{
 		log("Initializing server...");
 		server = this;
-		// this does not include data processing
 		threads = new Vector<ServerThread>();
 		handlers = new Vector<ServerHandler>();
 		unassignedHandlers = new Vector<>();
 		assignments = new HashMap<ServerThread, Vector<ServerHandler>>();
-		uuidAssignments = new HashMap<>();
+		uuidAssignments = new HashMap<String, ServerHandler>();
+		messages = new HashMap<String, MessageWrapper>();
 		log("Initialized server.");
 	}
 
@@ -82,7 +78,6 @@ public class Server
 			{
 				this.setName("Server Thread");
 				online = true;
-
 				try
 				{
 					serverSocket = new ServerSocket(Main.port);
@@ -356,25 +351,40 @@ public class Server
 	{
 		return online;
 	}
-	
+
 	public ServerHandler getHandlerByUUID(String uuid)
 	{
 		return uuidAssignments.get(uuid);
 	}
 
-	public void register(UUID uuid, ServerHandler sh)
+	public void register(String uuid, ServerHandler sh)
 	{
 		uuidAssignments.put(uuid, sh);
 	}
-	
+
 	public int getIndex()
 	{
 		int i = 0;
 		for (; !numbers.contains(i); i++)
-		{
-
-		}
+			;
 		return i;
+	}
+
+	public void queueMessageForUUID(MessageWrapper message)
+	{
+		// TODO
+	}
+
+	public MessageWrapper messageDueForUUID(String uuid)
+	{
+		if(messages.containsKey(uuid))
+		{
+			return messages.get(uuid);
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	public void splitThread(ServerThread t)

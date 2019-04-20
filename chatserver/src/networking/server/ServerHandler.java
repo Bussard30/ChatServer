@@ -23,6 +23,7 @@ import main.main.Main;
 import networking.exceptions.BadPacketException;
 import networking.logger.Logger;
 import networking.types.CredentialsWrapper;
+import networking.types.MessageWrapper;
 import networking.types.Protocol;
 import networking.types.Request;
 import networking.types.Response;
@@ -50,6 +51,8 @@ public class ServerHandler
 	private int current = 0;
 
 	private HashMap<NetworkPhases, boolean[]> networkphaseprogress;
+
+	private String uuid;
 
 	public ServerHandler(Socket s)
 	{
@@ -248,7 +251,9 @@ public class ServerHandler
 											((CredentialsWrapper) ((Request) o).getBuffer()).getUsername(),
 											((CredentialsWrapper) ((Request) o).getBuffer()).getPassword()))
 									{
-										Logger.info("Found user corresponding to the credentials !" + ((((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken()) ? "TOKEN!" : "NO TOKEN!"));
+										Logger.info("Found user corresponding to the credentials !"
+												+ ((((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken())
+														? "TOKEN!" : "NO TOKEN!"));
 										send(new Response(Responses.RSP_CREDS.getName(),
 												(((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken())
 														? "TOKEN" : "1"));
@@ -280,6 +285,35 @@ public class ServerHandler
 					break;
 				case COM:
 					Logger.info("Received request in " + phase.name());
+					for (Requests r : Requests.values())
+					{
+						if (r.getName().equals(((Request) o).getName()))
+						{
+							switch (r)
+							{
+							case TRSMT_MESSAGE:
+								if (((Request) o).getBuffer() instanceof MessageWrapper)
+								{
+									if (((MessageWrapper) (((Request) o).getBuffer())).getSource() != null
+											&& ((MessageWrapper) (((Request) o).getBuffer())).getDestination() != null
+											&& ((MessageWrapper) (((Request) o).getBuffer())).getId() != -1
+											&& ((MessageWrapper) (((Request) o).getBuffer())).getMessage() != null)
+									{
+										Server.getInstance()
+												.queueMessageForUUID(((MessageWrapper) (((Request) o).getBuffer())));
+										send(new Response(Responses.RCV_MESSAGE.getName(), new MessageWrapper(
+												((MessageWrapper) (((Request) o).getBuffer())).getMessage(),
+												((MessageWrapper) (((Request) o).getBuffer())).getSource(),
+												((MessageWrapper) (((Request) o).getBuffer())).getDestination(), true,
+												false, ((MessageWrapper) (((Request) o).getBuffer())).getId())));
+									}
+								}
+								break;
+							default:
+								break;
+							}
+						}
+					}
 					break;
 				case POST:
 
@@ -339,16 +373,22 @@ public class ServerHandler
 			if (networkphaseprogress.get(phase)[0] == true)
 			{
 				advance();
+			} else if (networkphaseprogress.get(phase)[1] == true)
+			{
+				// TODO
 			}
 			break;
 		case COM:
-			// int i2 = networkphaseprogress.get(NetworkPhases.COM);
-			// if (i2 == 0)
-			// {
-			// // TODO
-			// // get updates
-			// // send updates
-			// }
+			// TODO
+			if (uuid != null)
+			{
+				MessageWrapper m;
+				if ((m = Server.getInstance().messageDueForUUID(uuid)) != null)
+				{
+					send(new Request(Requests.TRSMT_MESSAGE.getName(), new MessageWrapper(m.getMessage(), m.getSource(),
+							m.getDestination(), true, false, m.getId())));
+				}
+			}
 			break;
 		case POST:
 			// actually i dont think this phase is strictly necessary but well

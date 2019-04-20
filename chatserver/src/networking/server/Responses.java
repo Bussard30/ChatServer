@@ -16,8 +16,11 @@ public enum Responses
 	RSP_CREDS("RSP_CREDS", NetworkPhases.PRE2, String.class),
 	
 	// TRANSMIT (user) CREDENTIALS, responds with new token
-	RSP_TOKEN("RSP_TOKEN", NetworkPhases.PRE2, String.class);
-
+	RSP_TOKEN("RSP_TOKEN", NetworkPhases.PRE2, String.class),
+	
+	RCV_MESSAGE("RCV_MESSAGE", NetworkPhases.COM, Boolean.class),
+	
+	;
 	private final String name;
 	private final NetworkPhases np;
 	private final Class<?> type;
