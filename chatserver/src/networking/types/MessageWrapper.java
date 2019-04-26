@@ -1,7 +1,13 @@
 package networking.types;
 
-public class MessageWrapper
+import java.io.Serializable;
+
+public class MessageWrapper extends Wrapper implements Serializable
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5667179476964469748L;
 	private String message, source, destination;
 	private boolean received, read;
 	private int id;
@@ -18,6 +24,22 @@ public class MessageWrapper
 		this.destination = destination;
 		this.received = received;
 		this.id = id;
+	}
+
+	public MessageWrapper(String[] s)
+	{
+		message = s[0];
+		source = s[1];
+		s[2] = destination;
+		received = s[3].equals("true") ? true : false;
+		read = s[4].equals("true") ? true : false;
+		try
+		{
+			id = Integer.parseInt(s[5]);
+		} catch (Throwable t)
+		{
+			throw new RuntimeException("Parameter 5 cannot be converted to an int");
+		}
 	}
 
 	public String getMessage()
@@ -68,6 +90,13 @@ public class MessageWrapper
 	public void setId(int id)
 	{
 		this.id = id;
+	}
+
+	@Override
+	public String[] getStrings()
+	{
+		return new String[]
+		{ message, source, destination, received ? "true" : "false", read ? "true" : "false", String.valueOf(id) };
 	}
 
 }

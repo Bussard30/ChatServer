@@ -8,7 +8,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import networking.types.CredentialsWrapper;
-import networking.types.Protocol;
+import networking.types.ProtocolWrapper;
 
 //
 //import java.lang.reflect.Constructor;
@@ -52,7 +52,7 @@ public class ObjectInterpreter
 		case TRSMT_PROTOCOL:
 			if (strings.length == 2)
 			{
-				return new Protocol(strings[0], strings[1]);
+				return new ProtocolWrapper(strings[0], strings[1]);
 
 			} else
 			{
@@ -108,7 +108,7 @@ public class ObjectInterpreter
 		case RSP_PROTOCOL:
 			if (strings.length == 2)
 			{
-				return new Protocol(strings[0], strings[1]);
+				return new ProtocolWrapper(strings[0], strings[1]);
 			} else
 			{
 				throw new RuntimeException();

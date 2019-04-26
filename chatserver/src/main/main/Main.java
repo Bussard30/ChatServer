@@ -3,12 +3,12 @@ package main.main;
 import datastorage.main.DSManager;
 import networking.server.Diagnostics;
 import networking.server.Server;
-import networking.types.Protocol;
+import networking.types.ProtocolWrapper;
 
 public class Main
 {
 	//CONSTANTS
-	public static Protocol protocol = new Protocol("1.0", "1.0");
+	public static ProtocolWrapper protocol = new ProtocolWrapper("1.0", "1.0");
 	public static int port = 20518;
 	private static Main main;
 	

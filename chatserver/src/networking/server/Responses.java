@@ -2,24 +2,26 @@ package networking.server;
 
 import java.security.PublicKey;
 
-import networking.types.Protocol;
+import networking.types.MessageWrapper;
+import networking.types.ProtocolWrapper;
+import networking.types.TokenWrapper;
 
 public enum Responses
 {
-	//RESPONSE TO KEY (exchange)
+	// RESPONSE TO KEY (exchange)
 	RSP_KEY("RSP_KEY", NetworkPhases.PRE0, PublicKey.class),
-	
-	//RESPONSE TO PROTOCOL
-	RSP_PROTOCOL("RSP_PROTOCOL", NetworkPhases.PRE1, Protocol.class),
-	
+
+	// RESPONSE TO PROTOCOL
+	RSP_PROTOCOL("RSP_PROTOCOL", NetworkPhases.PRE1, ProtocolWrapper.class),
+
 	// TRANSMIT (user) CREDENTIALS, responds with new token
-	RSP_CREDS("RSP_CREDS", NetworkPhases.PRE2, String.class),
-	
+	RSP_CREDS("RSP_CREDS", NetworkPhases.PRE2, TokenWrapper.class),
+
 	// TRANSMIT (user) CREDENTIALS, responds with new token
-	RSP_TOKEN("RSP_TOKEN", NetworkPhases.PRE2, String.class),
-	
-	RCV_MESSAGE("RCV_MESSAGE", NetworkPhases.COM, Boolean.class),
-	
+	RSP_TOKEN("RSP_TOKEN", NetworkPhases.PRE2, TokenWrapper.class),
+
+	RCV_MESSAGE("RCV_MESSAGE", NetworkPhases.COM, MessageWrapper.class),
+
 	;
 	private final String name;
 	private final NetworkPhases np;
