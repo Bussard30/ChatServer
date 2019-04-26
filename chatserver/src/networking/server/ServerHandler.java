@@ -647,7 +647,7 @@ public class ServerHandler
 					}
 				}
 			}
-			throw new BadPacketException("Package not properly built");
+			throw new BadPacketException("Package malfunctional");
 		} else if (info[0] == "Res")
 
 		{
