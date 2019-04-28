@@ -19,7 +19,7 @@ public enum Requests
 	// TRANSMIT (user) CREDENTIALS
 	TRSMT_CREDS("TRSMT_CREDS", NetworkPhases.PRE2, CredentialsWrapper.class),
 	
-	// TRANSMIT (user) CREDENTIALS
+	// TRANSMIT TOKEN
 	TRSMT_TOKEN("TRSMT_TOKEN", NetworkPhases.PRE2, TokenWrapper.class),
 	
 	TRSMT_MESSAGE("TRSMT_MESSAGE", NetworkPhases.COM, MessageWrapper.class),

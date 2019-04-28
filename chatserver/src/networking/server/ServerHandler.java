@@ -28,6 +28,7 @@ import main.main.Main;
 import networking.exceptions.BadPacketException;
 import networking.logger.Logger;
 import networking.types.CredentialsWrapper;
+import networking.types.LoginResponseWrapper;
 import networking.types.MessageWrapper;
 import networking.types.ProtocolWrapper;
 import networking.types.Request;
@@ -261,18 +262,18 @@ public class ServerHandler
 												+ ((((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken())
 														? "TOKEN!" : "NO TOKEN!"));
 										send(new Response(Responses.RSP_CREDS.getName(),
-												(((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken())
-														? "TOKEN" : "1"));
+												new LoginResponseWrapper(true, (((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken())
+														? "TOKENTODO" : "null")));
 										networkphaseprogress.get(phase)[0] = true;
 									} else
 									{
 										Logger.info("Did not find user corresponding to the credentials !");
-										send(new Response(Responses.RSP_CREDS.getName(), "ACCESS DENIED"));
+										send(new Response(Responses.RSP_CREDS.getName(), new LoginResponseWrapper(false, "null")));
 									}
 								} else
 								{
 									Logger.info("Invalid user credentials.");
-									send(new Response(Responses.RSP_CREDS.getName(), "ACCESS DENIED"));
+									send(new Response(Responses.RSP_CREDS.getName(), new LoginResponseWrapper(false, "null")));
 								}
 								break;
 							case TRSMT_TOKEN:
@@ -477,6 +478,7 @@ public class ServerHandler
 					s = s + ";" + sa[i];
 				}
 			}
+			Logger.info("Sending " + s);
 			byte[] b0 = encrypt(pub1, s.getBytes("UTF8"));
 			out.writeInt(b0.length);
 			out.write(b0);
@@ -496,6 +498,7 @@ public class ServerHandler
 					s = s + ";" + sa[i];
 				}
 			}
+			Logger.info("Sending " + s);
 			byte[] b0 = s.getBytes("UTF8");
 			out.writeInt(b0.length);
 			out.write(b0);
@@ -521,6 +524,7 @@ public class ServerHandler
 					s = s + ";" + sa[i];
 				}
 			}
+			Logger.info("Sending " + s);
 			byte[] b0 = encrypt(pub1, s.getBytes("UTF8"));
 			out.writeInt(b0.length);
 			out.write(b0);
@@ -540,6 +544,7 @@ public class ServerHandler
 					s = s + ";" + sa[i];
 				}
 			}
+			Logger.info("Sending " + s);
 			byte[] b0 = s.getBytes("UTF8");
 			out.writeInt(b0.length);
 			out.write(b0);
@@ -617,6 +622,7 @@ public class ServerHandler
 	private Object deserialize(byte[] b) throws UnsupportedEncodingException, BadPacketException
 	{
 		String s = new String(b, "UTF8");
+		Logger.info(s);
 		String[] temp = s.split(";");
 		String[] info = new String[]
 		{ temp[0], temp[1] };
@@ -626,15 +632,20 @@ public class ServerHandler
 			data[i - 2] = temp[i];
 		}
 
-		if (info[0] == "Req")
+		if (info[0].equals("Req"))
 		{
 			for (Requests r : Requests.values())
 			{
 				if (r.getName().equals(info[1]))
 				{
-					if (r.getClass().isAssignableFrom(Wrapper.class))
+					Logger.info(info[1]);
+					if (r.getType().getSuperclass() != null)
 					{
-						return new Request(info[1], Wrapper.getWrapper((Class<? extends Wrapper>) r.getType(), data));
+						if (r.getType().getSuperclass().equals(Wrapper.class))
+						{
+							return new Request(info[1],
+									Wrapper.getWrapper((Class<? extends Wrapper>) r.getType(), data));
+						}
 					} else if (r.getType().equals(PublicKey.class))
 					{
 						try
@@ -648,16 +659,18 @@ public class ServerHandler
 				}
 			}
 			throw new BadPacketException("Package malfunctional");
-		} else if (info[0] == "Res")
-
+		} else if (info[0].equals("Res"))
 		{
-			for (Requests r : Requests.values())
+			for (Responses r : Responses.values())
 			{
 				if (r.getName().equals(info[1]))
 				{
-					if (r.getType().isAssignableFrom(Wrapper.class))
+					if (r.getType().getSuperclass() != null)
 					{
+						if (r.getType().getSuperclass().equals(Wrapper.class))
+						{
 						return new Response(info[1], Wrapper.getWrapper((Class<? extends Wrapper>) r.getType(), data));
+						}
 					} else if (r.getType().equals(PublicKey.class))
 					{
 						try
