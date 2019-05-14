@@ -15,22 +15,24 @@ public class DSManager
 	private Connection connect = null;
 
 	private static DSManager instance;
-	
+
 	public DSManager()
 	{
 		try
 		{
-			connect = DriverManager.getConnection("jdbc:mysql://localhost/users?"
-					+ "user=standard&password=Titan[6565]&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC");
+			String host = "jdbc:derby://localhost:3306/chatclient";
+			String username = "root";
+			String password = null;
+			connect = DriverManager.getConnection(host, username, password);
 		} catch (SQLException e)
 		{
-			Logger.info("DSMANAGER","COULD NOT AQUIRE CONNECTION.");
+			Logger.info("DSMANAGER", "COULD NOT AQUIRE CONNECTION.");
+			Logger.error(e);
 		}
-		if(instance != null)
+		if (instance != null)
 		{
 			throw new RuntimeException();
-		}
-		else
+		} else
 		{
 			instance = this;
 		}
@@ -63,7 +65,7 @@ public class DSManager
 			System.out.println("");
 		}
 	}
-	
+
 	public static DSManager getInstance()
 	{
 		return instance;
