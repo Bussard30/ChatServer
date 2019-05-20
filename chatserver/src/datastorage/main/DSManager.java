@@ -20,7 +20,7 @@ public class DSManager
 	{
 		try
 		{
-			String host = "jdbc:derby://localhost:3306/chatclient";
+			String host = "jdbc:mysql://localhost:3306/chatclient";
 			String username = "root";
 			String password = null;
 			connect = DriverManager.getConnection(host, username, password);
@@ -41,7 +41,7 @@ public class DSManager
 	public boolean validateUser(String username, String password) throws SQLException
 	{
 		PreparedStatement preparedStatement = connect
-				.prepareStatement("select count(*) as recordcount from users.users where MYUSER = ? AND PASSWORD = ?");
+				.prepareStatement("select count(*) as recordcount from users where nickname = ? AND password = ?");
 		preparedStatement.setString(1, username);
 		preparedStatement.setString(2, password);
 		ResultSet rs = preparedStatement.executeQuery();
