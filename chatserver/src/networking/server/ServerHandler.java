@@ -18,6 +18,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.sql.SQLException;
 import java.util.Base64;
 import java.util.HashMap;
 
@@ -25,11 +26,13 @@ import javax.crypto.Cipher;
 
 import datastorage.main.DSManager;
 import main.main.Main;
+import main.types.User;
 import networking.exceptions.BadPacketException;
 import networking.logger.Logger;
 import networking.types.CredentialsWrapper;
 import networking.types.LoginResponseWrapper;
 import networking.types.MessageWrapper;
+import networking.types.ProfileInfoWrapper;
 import networking.types.ProtocolWrapper;
 import networking.types.Request;
 import networking.types.Response;
@@ -59,7 +62,7 @@ public class ServerHandler
 
 	private HashMap<NetworkPhases, boolean[]> networkphaseprogress;
 
-	private String uuid;
+	private User u;
 
 	public ServerHandler(Socket s)
 	{
@@ -254,26 +257,32 @@ public class ServerHandler
 							case TRSMT_CREDS:
 								if (((Request) o).getBuffer() instanceof CredentialsWrapper)
 								{
-									if (DSManager.getInstance().validateUser(
-											((CredentialsWrapper) ((Request) o).getBuffer()).getUsername(),
-											((CredentialsWrapper) ((Request) o).getBuffer()).getPassword()))
+
+									try
 									{
+										this.u = DSManager.getInstance().getUser(
+												((CredentialsWrapper) ((Request) o).getBuffer()).getUsername(),
+												((CredentialsWrapper) ((Request) o).getBuffer()).getPassword());
 										Logger.info("Found user corresponding to the credentials !"
 												+ ((((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken())
 														? "TOKEN!" : "NO TOKEN!"));
 										send(new Response(Responses.RSP_CREDS.getName(),
-												new LoginResponseWrapper(true, (((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken())
-														? "TOKENTODO" : "null")));
+												new LoginResponseWrapper(true,
+														(((CredentialsWrapper) ((Request) o).getBuffer()).wantsToken())
+																? "TOKENTODO" : "null")));
 										networkphaseprogress.get(phase)[0] = true;
-									} else
+									} catch (SQLException e)
 									{
+										e.printStackTrace();
 										Logger.info("Did not find user corresponding to the credentials !");
-										send(new Response(Responses.RSP_CREDS.getName(), new LoginResponseWrapper(false, "null")));
+										send(new Response(Responses.RSP_CREDS.getName(),
+												new LoginResponseWrapper(false, "null")));
 									}
 								} else
 								{
 									Logger.info("Invalid user credentials.");
-									send(new Response(Responses.RSP_CREDS.getName(), new LoginResponseWrapper(false, "null")));
+									send(new Response(Responses.RSP_CREDS.getName(),
+											new LoginResponseWrapper(false, "null")));
 								}
 								break;
 							case TRSMT_TOKEN:
@@ -315,6 +324,10 @@ public class ServerHandler
 												false, ((MessageWrapper) (((Request) o).getBuffer())).getId())));
 									}
 								}
+								break;
+							case REQST_DATA:
+								send(new Response(Responses.RSP_DATA.getName(),
+										new ProfileInfoWrapper(u.getUsername(), u.getStatus(), u.getProfilepic())));
 								break;
 							default:
 								break;
@@ -387,10 +400,10 @@ public class ServerHandler
 			break;
 		case COM:
 			// TODO
-			if (uuid != null)
+			if (u != null)
 			{
 				MessageWrapper m;
-				if ((m = Server.getInstance().messageDueForUUID(uuid)) != null)
+				if ((m = Server.getInstance().messageDueForUUID(u.getUuid())) != null)
 				{
 					send(new Request(Requests.TRSMT_MESSAGE.getName(), new MessageWrapper(m.getMessage(), m.getSource(),
 							m.getDestination(), true, false, m.getId())));
@@ -655,6 +668,14 @@ public class ServerHandler
 						{
 							e.printStackTrace();
 						}
+					} else
+					{
+						String stemp = null;
+						for (String c : data)
+						{
+							stemp += c;
+						}
+						return new Request(info[1], stemp);
 					}
 				}
 			}
@@ -669,7 +690,8 @@ public class ServerHandler
 					{
 						if (r.getType().getSuperclass().equals(Wrapper.class))
 						{
-						return new Response(info[1], Wrapper.getWrapper((Class<? extends Wrapper>) r.getType(), data));
+							return new Response(info[1],
+									Wrapper.getWrapper((Class<? extends Wrapper>) r.getType(), data));
 						}
 					} else if (r.getType().equals(PublicKey.class))
 					{
@@ -680,6 +702,14 @@ public class ServerHandler
 						{
 							e.printStackTrace();
 						}
+					} else
+					{
+						String stemp = null;
+						for (String c : data)
+						{
+							stemp += c;
+						}
+						return new Request(info[1], stemp);
 					}
 				}
 			}

@@ -1,14 +1,22 @@
 package datastorage.main;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 
+import javax.imageio.ImageIO;
+
+import main.exceptions.EmailFormationException;
+import main.types.Email;
+import main.types.User;
 import networking.logger.Logger;
-
-import java.sql.*;
 
 public class DSManager
 {
@@ -38,6 +46,7 @@ public class DSManager
 		}
 	}
 
+	@Deprecated
 	public boolean validateUser(String username, String password) throws SQLException
 	{
 		PreparedStatement preparedStatement = connect
@@ -47,6 +56,79 @@ public class DSManager
 		ResultSet rs = preparedStatement.executeQuery();
 		rs.next();
 		return rs.getInt("recordcount") != 0;
+	}
+
+	public User getUser(String username, String password) throws SQLException
+	{
+
+		PreparedStatement preparedStatement = connect
+				.prepareStatement("select * from users where nickname = ? AND password = ?");
+		preparedStatement.setString(1, username);
+		preparedStatement.setString(2, password);
+		ResultSet rs = preparedStatement.executeQuery();
+		PreparedStatement preparedStatement0 = connect
+				.prepareStatement("select count(*) as recordcount from users where nickname = ? AND password = ?");
+		preparedStatement0.setString(1, username);
+		preparedStatement0.setString(2, password);
+		ResultSet rs0 = preparedStatement0.executeQuery();
+		rs0.next();
+
+		if (rs0.getInt("recordcount") == 1)
+		{
+			try
+			{
+				rs.next();
+				// TEMP
+				if (rs.getBytes("profile_pic").length == 0)
+				{
+					BufferedImage img = null;
+					try
+					{
+						img = ImageIO.read(DSManager.class.getResource("image.png"));
+					} catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					try
+					{
+						ImageIO.write(img, "png", baos);
+					} catch (IOException e2)
+					{
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+					try
+					{
+						baos.flush();
+					} catch (IOException e1)
+					{
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+
+					PreparedStatement preparedStatement1 = connect
+							.prepareStatement("UPDATE users SET profile_pic = ? where id = ?");
+					preparedStatement1.setBytes(1, baos.toByteArray());
+					preparedStatement1.setInt(2, rs.getInt("id"));
+					preparedStatement1.executeUpdate();
+					baos.close();
+					Logger.info("updated value");
+				} else
+				{
+					Logger.info("value: " + new String(rs.getBytes("profile_pic")));
+				}
+
+				return new User(new Email(rs.getString("email")), rs.getString("nickname"), rs.getString("password"),
+						rs.getString("status"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
+						rs.getDate("lastonline"), rs.getBytes("userid"));
+			} catch (EmailFormationException | IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		throw new SQLException();
 	}
 
 	private void writeResultSet(ResultSet rs) throws SQLException

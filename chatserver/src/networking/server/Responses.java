@@ -4,6 +4,7 @@ import java.security.PublicKey;
 
 import networking.types.LoginResponseWrapper;
 import networking.types.MessageWrapper;
+import networking.types.ProfileInfoWrapper;
 import networking.types.ProtocolWrapper;
 
 public enum Responses
@@ -22,6 +23,7 @@ public enum Responses
 
 	RCV_MESSAGE("RCV_MESSAGE", NetworkPhases.COM, MessageWrapper.class),
 
+	RSP_DATA("RSP_DATA", NetworkPhases.COM, ProfileInfoWrapper.class),
 	;
 	private final String name;
 	private final NetworkPhases np;

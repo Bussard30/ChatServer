@@ -375,11 +375,11 @@ public class Server
 		// TODO
 	}
 
-	public MessageWrapper messageDueForUUID(String uuid)
+	public MessageWrapper messageDueForUUID(byte[] bs)
 	{
-		if(messages.containsKey(uuid))
+		if(messages.containsKey(bs))
 		{
-			return messages.get(uuid);
+			return messages.get(bs);
 		}
 		else
 		{

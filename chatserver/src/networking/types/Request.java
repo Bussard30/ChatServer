@@ -27,7 +27,7 @@ public class Request implements Serializable
 		this.name = name;
 	}
 	
-	public void setNr(int nr)
+	public void setNr(int nr) 
 	{
 		this.nr = nr;
 	}
