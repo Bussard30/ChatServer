@@ -9,8 +9,11 @@ import networking.types.ProtocolWrapper;
 
 public enum Responses
 {
-	// RESPONSE TO KEY (exchange)
-	RSP_KEY("RSP_KEY", NetworkPhases.PRE0, PublicKey.class),
+	// RESPONSE TO RSA KEY (exchange)
+	RSP_RSAKEY("RSP_RSAKEY", NetworkPhases.PRE0, PublicKey.class),
+	
+//	// RESPONSE TO AES KEY (exchange)
+//	RSP_AESKEY("RSP_AESKEY", NetworkPhases.PRE0, Object.class),
 
 	// RESPONSE TO PROTOCOL
 	RSP_PROTOCOL("RSP_PROTOCOL", NetworkPhases.PRE1, ProtocolWrapper.class),

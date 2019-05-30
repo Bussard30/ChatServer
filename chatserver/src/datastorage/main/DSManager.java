@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Base64;
 
 import javax.imageio.ImageIO;
 
@@ -79,12 +80,13 @@ public class DSManager
 			{
 				rs.next();
 				// TEMP
-				if (rs.getBytes("profile_pic").length == 0)
+				if (rs.getBytes("profile_pic").length > 0)
 				{
+					Logger.info("Bytes of profile pic null");
 					BufferedImage img = null;
 					try
 					{
-						img = ImageIO.read(DSManager.class.getResource("image.png"));
+						img = ImageIO.read(DSManager.class.getResource("image.jpg"));
 					} catch (IOException e)
 					{
 						e.printStackTrace();
@@ -92,7 +94,7 @@ public class DSManager
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					try
 					{
-						ImageIO.write(img, "png", baos);
+						ImageIO.write(img, "jpg", baos);
 					} catch (IOException e2)
 					{
 						// TODO Auto-generated catch block
@@ -118,9 +120,10 @@ public class DSManager
 				{
 					Logger.info("value: " + new String(rs.getBytes("profile_pic")));
 				}
-
+				Logger.info("bfatehnjetaheth" + rs.getString("status"));
 				return new User(new Email(rs.getString("email")), rs.getString("nickname"), rs.getString("password"),
-						rs.getString("status"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
+						rs.getString("status"),
+						ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
 						rs.getDate("lastonline"), rs.getBytes("userid"));
 			} catch (EmailFormationException | IOException e)
 			{

@@ -31,7 +31,7 @@ public class ObjectInterpreter
 				throw new RuntimeException();
 			}
 
-		case TRSMT_KEY:
+		case TRSMT_RSAKEY:
 			if (strings.length == 1)
 			{
 				try
@@ -87,7 +87,7 @@ public class ObjectInterpreter
 			{
 				throw new RuntimeException();
 			}
-		case RSP_KEY:
+		case RSP_RSAKEY:
 			try
 			{
 				if (strings.length == 1)

@@ -22,6 +22,7 @@ public class User
 		this.password = password;
 		this.setProfilepic(profilepic);
 		this.date = date;
+		this.status = status;
 		this.uuid = uuid;
 	}
 

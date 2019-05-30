@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import main.exceptions.EmailFormationException;
 import main.types.Email;
 import main.types.User;
+import networking.logger.Logger;
 
 public class ProfileInfoWrapper extends Wrapper
 {
@@ -21,29 +22,56 @@ public class ProfileInfoWrapper extends Wrapper
 	{
 		// TODO Auto-generated constructor stub
 	}
-
-	public ProfileInfoWrapper(String[] s)
-	{
-		try
-		{
-			user = new User(new Email(s[2]), s[0], s[1], s[3], ImageIO.read(new ByteArrayInputStream(s[3].getBytes())),
-					new Date(Long.valueOf(s[4])), s[5].getBytes());
-		} catch (NumberFormatException | EmailFormationException | IOException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
 	public ProfileInfoWrapper(String username, String status, BufferedImage bi)
 	{
 		user = new User(null, username, null, status, bi, null, null);
+	}
+	
+	public ProfileInfoWrapper(String[] s)
+	{
+		Logger.info(s[4]);
+			try
+			{
+				user = new User(s[2] != null ? new Email(s[2]) : null, s[0], s[1], s[3],
+						s[4] != null ? ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(s[4]))) : null,
+						s[5] != null && s[5] == "null" ? new Date(Long.valueOf(s[5])) : null, s[6] != null ? s[6].getBytes() : null);
+			} catch (NumberFormatException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (EmailFormationException e)
+			{
+				try
+				{
+					user = new User(null, s[0], s[1], s[3],
+							s[4] != null ? ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(s[4]))) : null,
+							s[5] != null ? new Date(Long.valueOf(s[4])) : null, s[6] != null ? s[6].getBytes() : null);
+				} catch (NumberFormatException | IOException e1)
+				{
+					try
+					{
+						user = new User(null, s[0], s[1], s[3],
+								s[4] != null ? ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(s[4]))) : null,
+								null, s[6] != null ? s[6].getBytes() : null);
+					} catch (IOException e2)
+					{
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+				}
+			} catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 	}
 
 	@Override
 	public String[] getStrings()
 	{
 		String string = null;
-		if(user.getProfilepic() != null)
+		if (user.getProfilepic() != null)
 		{
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			try
@@ -78,7 +106,8 @@ public class ProfileInfoWrapper extends Wrapper
 				user.getPassword() != null ? user.getPassword() : "null",
 				user.getEmail() != null ? user.getEmail().getLocal() + "@" + user.getEmail().getDomain() + "."
 						+ user.getEmail().getTLD() : "null",
-				user.getStatus() != null ? user.getStatus() : "null", user.getProfilepic() != null ? string : "null",
+				user.getStatus() != null ? user.getStatus() : "null",
+				user.getProfilepic() != null ? string : "null",
 				user.getDate() != null ? String.valueOf(user.getDate().getTime()) : "null",
 				user.getUuid() != null ? new String(user.getUuid()) : "null" };
 	}

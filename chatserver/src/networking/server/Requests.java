@@ -2,6 +2,7 @@ package networking.server;
 
 import java.security.PublicKey;
 
+import networking.types.AESKeyWrapper;
 import networking.types.CredentialsWrapper;
 import networking.types.MessageWrapper;
 import networking.types.ProtocolWrapper;
@@ -10,7 +11,10 @@ import networking.types.TokenWrapper;
 public enum Requests
 {
 	// TRANSMIT PUBLIC KEY
-	TRSMT_KEY("TRSMT_KEY", NetworkPhases.PRE0, PublicKey.class),
+	TRSMT_RSAKEY("TRSMT_RSAKEY", NetworkPhases.PRE0, PublicKey.class),
+
+	// TRANSMIT AES KEY
+	TRSMT_AESKEY("TRSMT_AESKEY", NetworkPhases.PRE0, AESKeyWrapper.class),
 
 	// TRANSMIT PROTOCOL
 	TRSMT_PROTOCOL("TRSMT_PROTOCOL", NetworkPhases.PRE1, ProtocolWrapper.class),
@@ -24,7 +28,7 @@ public enum Requests
 	TRSMT_MESSAGE("TRSMT_MESSAGE", NetworkPhases.COM, MessageWrapper.class),
 
 	REQST_DATA("REQST_DATA", NetworkPhases.COM, Object.class),
-	
+
 	;
 
 	private final String name;
