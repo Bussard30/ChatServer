@@ -25,6 +25,9 @@ public class DSManager
 
 	private static DSManager instance;
 
+	/**
+	 * TODO Requires new system with thread handling of certain tasks
+	 */
 	public DSManager()
 	{
 		try
@@ -61,7 +64,8 @@ public class DSManager
 
 	public User getUser(String username, String password) throws SQLException
 	{
-
+		Logger.info("Fetching user...");
+		long old = System.currentTimeMillis();
 		PreparedStatement preparedStatement = connect
 				.prepareStatement("select * from users where nickname = ? AND password = ?");
 		preparedStatement.setString(1, username);
@@ -80,13 +84,13 @@ public class DSManager
 			{
 				rs.next();
 				// TEMP
-				if (rs.getBytes("profile_pic").length > 0)
+				if (rs.getBytes("profile_pic").length == 0)
 				{
 					Logger.info("Bytes of profile pic null");
 					BufferedImage img = null;
 					try
 					{
-						img = ImageIO.read(DSManager.class.getResource("image.jpg"));
+						img = ImageIO.read(DSManager.class.getResource("image.png"));
 					} catch (IOException e)
 					{
 						e.printStackTrace();
@@ -116,14 +120,11 @@ public class DSManager
 					preparedStatement1.executeUpdate();
 					baos.close();
 					Logger.info("updated value");
-				} else
-				{
-					Logger.info("value: " + new String(rs.getBytes("profile_pic")));
+					rs = preparedStatement.executeQuery();
 				}
-				Logger.info("bfatehnjetaheth" + rs.getString("status"));
+				Logger.info("Operation took ~ " + (System.currentTimeMillis() - old) + "ms");
 				return new User(new Email(rs.getString("email")), rs.getString("nickname"), rs.getString("password"),
-						rs.getString("status"),
-						ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
+						rs.getString("status"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
 						rs.getDate("lastonline"), rs.getBytes("userid"));
 			} catch (EmailFormationException | IOException e)
 			{
@@ -132,6 +133,57 @@ public class DSManager
 			}
 		}
 		throw new SQLException();
+	}
+
+	public void changeProfilePic(byte[] uuid, BufferedImage bi)
+	{
+		Logger.info("Bytes of profile pic null");
+		BufferedImage img = null;
+		try
+		{
+			img = ImageIO.read(DSManager.class.getResource("image.jpg"));
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try
+		{
+			ImageIO.write(img, "jpg", baos);
+		} catch (IOException e2)
+		{
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		try
+		{
+			baos.flush();
+		} catch (IOException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		try
+		{
+			PreparedStatement preparedStatement1 = connect
+					.prepareStatement("UPDATE users SET profile_pic = ? where userid = ?");
+			preparedStatement1.setBytes(1, baos.toByteArray());
+			preparedStatement1.setBytes(2, uuid);
+			preparedStatement1.executeUpdate();
+		} catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try
+		{
+			baos.close();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Logger.info("Updated value.");
 	}
 
 	private void writeResultSet(ResultSet rs) throws SQLException
