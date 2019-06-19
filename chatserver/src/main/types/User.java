@@ -9,20 +9,20 @@ public class User
 	private Email email;
 	private String username;
 	private String password;
-	private String status;
+	private String description;
 	private BufferedImage profilepic;
 	private Date date;
 	private byte[] uuid;
 
-	public User(Email email, String username, String password, String status, BufferedImage profilepic, Date date,
+	public User(Email email, String username, String password, String description, BufferedImage profilepic, Date date,
 			byte[] uuid)
 	{
 		this.email = email;
 		this.username = username;
 		this.password = password;
-		this.setProfilepic(profilepic);
+		this.profilepic = profilepic;
+		this.description = description;
 		this.date = date;
-		this.status = status;
 		this.uuid = uuid;
 	}
 
@@ -88,12 +88,12 @@ public class User
 
 	public String getStatus()
 	{
-		return status;
+		return description;
 	}
 
 	public void setStatus(String status)
 	{
-		this.status = status;
+		this.description = status;
 	}
 
 }

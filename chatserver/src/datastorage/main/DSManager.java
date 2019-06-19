@@ -10,7 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.Base64;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
@@ -124,7 +124,7 @@ public class DSManager
 				}
 				Logger.info("Operation took ~ " + (System.currentTimeMillis() - old) + "ms");
 				return new User(new Email(rs.getString("email")), rs.getString("nickname"), rs.getString("password"),
-						rs.getString("status"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
+						rs.getString("description"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
 						rs.getDate("lastonline"), rs.getBytes("userid"));
 			} catch (EmailFormationException | IOException e)
 			{
@@ -186,6 +186,46 @@ public class DSManager
 		Logger.info("Updated value.");
 	}
 
+	public Vector<User> searchUser(String name)
+	{
+		PreparedStatement pS = null;
+		Vector<User> v = new Vector<>();
+		try
+		{
+			pS = connect.prepareStatement("SELECT * FROM users where nickname like ?");
+		} catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ResultSet rs = null;
+		try
+		{
+			rs = pS.executeQuery();
+			while(rs.next())
+			{
+				try
+				{
+					v.add(new User(new Email(rs.getString("email")), rs.getString("nickname"), null,
+							rs.getString("description"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
+							rs.getDate("lastonline"), rs.getBytes("userid")));
+				} catch (EmailFormationException e)
+				{
+					// fix user
+				} catch (IOException e)
+				{
+					// fix user by setting default profile pic instead of bugged one
+				}
+			}
+		} catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return v;
+	}
+
+	@SuppressWarnings("unused")
 	private void writeResultSet(ResultSet rs) throws SQLException
 	{
 		ResultSetMetaData rsmd = rs.getMetaData();
