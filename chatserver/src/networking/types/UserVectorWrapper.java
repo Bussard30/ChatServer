@@ -84,4 +84,9 @@ public class UserVectorWrapper extends Wrapper
 		}
 		return (String[]) strings.toArray();
 	}
+	
+	public Vector<User> getUsers()
+	{
+		return users;
+	}
 }

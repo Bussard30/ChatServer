@@ -202,19 +202,16 @@ public class DSManager
 		try
 		{
 			rs = pS.executeQuery();
-			while(rs.next())
+			while (rs.next())
 			{
 				try
 				{
-					v.add(new User(new Email(rs.getString("email")), rs.getString("nickname"), null,
-							rs.getString("description"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
-							rs.getDate("lastonline"), rs.getBytes("userid")));
-				} catch (EmailFormationException e)
-				{
-					// fix user
+					v.add(new User(null, rs.getString("nickname"), null, null,
+							ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))), null, null));
 				} catch (IOException e)
 				{
-					// fix user by setting default profile pic instead of bugged one
+					// fix user by setting default profile pic instead of bugged
+					// one
 				}
 			}
 		} catch (SQLException e)

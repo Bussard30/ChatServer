@@ -6,6 +6,7 @@ import networking.types.AESKeyWrapper;
 import networking.types.CredentialsWrapper;
 import networking.types.MessageWrapper;
 import networking.types.ProtocolWrapper;
+import networking.types.SearchUserWrapper;
 import networking.types.TokenWrapper;
 
 public enum Requests
@@ -28,6 +29,8 @@ public enum Requests
 	TRSMT_MESSAGE("TRSMT_MESSAGE", NetworkPhases.COM, MessageWrapper.class),
 
 	REQST_DATA("REQST_DATA", NetworkPhases.COM, Object.class),
+	
+	SEARCH_USER("SEARCH_USER", NetworkPhases.COM, SearchUserWrapper.class),
 
 	;
 

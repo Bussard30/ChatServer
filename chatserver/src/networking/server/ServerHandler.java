@@ -42,6 +42,7 @@ import networking.types.ProfileInfoWrapper;
 import networking.types.ProtocolWrapper;
 import networking.types.Request;
 import networking.types.Response;
+import networking.types.SearchUserWrapper;
 import networking.types.Wrapper;
 
 public class ServerHandler
@@ -350,10 +351,17 @@ public class ServerHandler
 								}
 								break;
 							case REQST_DATA:
-								Logger.info("gaerfhgeth " + u.getStatus());
+								Logger.info("Request for data...");
 								send(new Response(Responses.RSP_DATA.getName(),
 										new ProfileInfoWrapper(u.getUsername(), u.getStatus(), u.getProfilepic())));
 								break;
+							case SEARCH_USER:
+								if (((Request) o).getBuffer() instanceof SearchUserWrapper)
+								{
+									Logger.info("Searches for user with current search query...");
+									send(new Response(Responses.USER_QUERY.getName(), DSManager.getInstance()
+											.searchUser(((SearchUserWrapper) ((Request) o).getBuffer()).getName())));
+								}
 							default:
 								break;
 							}
