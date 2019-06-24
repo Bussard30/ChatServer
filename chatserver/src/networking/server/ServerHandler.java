@@ -43,6 +43,7 @@ import networking.types.ProtocolWrapper;
 import networking.types.Request;
 import networking.types.Response;
 import networking.types.SearchUserWrapper;
+import networking.types.UserVectorWrapper;
 import networking.types.Wrapper;
 
 public class ServerHandler
@@ -359,8 +360,9 @@ public class ServerHandler
 								if (((Request) o).getBuffer() instanceof SearchUserWrapper)
 								{
 									Logger.info("Searches for user with current search query...");
-									send(new Response(Responses.USER_QUERY.getName(), DSManager.getInstance()
-											.searchUser(((SearchUserWrapper) ((Request) o).getBuffer()).getName())));
+									send(new Response(Responses.USER_QUERY.getName(),
+											new UserVectorWrapper(DSManager.getInstance().searchUser(
+													((SearchUserWrapper) ((Request) o).getBuffer()).getName()))));
 								}
 							default:
 								break;
@@ -738,7 +740,7 @@ public class ServerHandler
 
 	private String[] getStrings(Object o) throws UnsupportedEncodingException
 	{
-
+		Logger.info(o.getClass().getName());
 		if (o instanceof Wrapper)
 		{
 			return ((networking.types.Wrapper) o).getStrings();

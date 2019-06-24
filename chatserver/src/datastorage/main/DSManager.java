@@ -193,6 +193,7 @@ public class DSManager
 		try
 		{
 			pS = connect.prepareStatement("SELECT * FROM users where nickname like ?");
+			pS.setString(1, name);
 		} catch (SQLException e)
 		{
 			// TODO Auto-generated catch block

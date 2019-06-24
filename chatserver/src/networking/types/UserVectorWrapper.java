@@ -9,6 +9,7 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 
 import main.types.User;
+import networking.logger.Logger;
 
 public class UserVectorWrapper extends Wrapper	
 {
@@ -22,7 +23,7 @@ public class UserVectorWrapper extends Wrapper
 	public UserVectorWrapper(String[] s)
 	{
 		users = new Vector<>();
-		for (int i = 0; i < s.length; i += 2)
+		for (int i = 0; i < s.length - 1; i += 2)
 		{
 			try
 			{
@@ -82,7 +83,14 @@ public class UserVectorWrapper extends Wrapper
 			strings.add((user.getUsername() != null) ? user.getUsername() : "null");
 			strings.add(user.getProfilepic() != null ? string : "null");
 		}
-		return (String[]) strings.toArray();
+		String[] temp = new String[strings.size()];
+		int i = 0;
+		for(String s : strings)
+		{
+			temp[i] = s;
+			i++;
+		}
+		return temp;
 	}
 	
 	public Vector<User> getUsers()
