@@ -46,9 +46,15 @@ import networking.types.SearchUserWrapper;
 import networking.types.UserVectorWrapper;
 import networking.types.Wrapper;
 
+/**
+ * Handles incoming traffic for one client.<br>
+ * Initiated by {@link Server}<br>
+ * Run method executed by {@link ServerThread}<br>
+ * @author Bussard30
+ *
+ */
 public class ServerHandler
 {
-	private String password;
 	private Socket s;
 
 	private boolean queueEmpty;
@@ -74,6 +80,10 @@ public class ServerHandler
 
 	private SecretKey key;
 
+	/**
+	 * Generates new server handler to handle socket
+	 * @param s
+	 */
 	public ServerHandler(Socket s)
 	{
 		this.s = s;
@@ -99,11 +109,6 @@ public class ServerHandler
 		}
 	}
 
-	public ServerHandler(Socket s, String password)
-	{
-		this(s);
-		this.password = password;
-	}
 
 	public ServerHandler(Socket s, DataInputStream in, DataOutputStream out)
 	{
@@ -112,16 +117,42 @@ public class ServerHandler
 		this.in = in;
 	}
 
-	public ServerHandler(Socket s, DataInputStream in, DataOutputStream out, String password)
-	{
-		this(s, in, out);
-		this.password = password;
-	}
 
+	/**
+	 * <h1>Connectivity Check</h1> First of all it checks if the server is
+	 * already closed<br>
+	 * and if that's true it closes the Handler<br>
+	 * <h1>Deserialization</h1> First it checks if the queue is empty.<br>
+	 * If not, it's going to read an 32-bit integer,<br>
+	 * which is the length of the incoming packet.<br>
+	 * Then it gets decrypted with the AES key (see {@link #key} &<br>
+	 * {@link #decrypt(SecretKey, byte[])}).<br>
+	 * After that it get deserialized (see {@link #deserialize(byte[])}).<br>
+	 * <h1>Interpretation</h1> Now depending on the type of request/response
+	 * and/or the type of the object<br>
+	 * a different response will be triggered <br>
+	 * (see {@link Requests} and {@link Responses})
+	 * <h1>The end</h1> Now it is being checked if the conditions for
+	 * advancing<br>
+	 * to the next network phase have been met.<br>
+	 * It also may initiate new requests/responses depending on the network
+	 * phase.<br>
+	 * (see {@link NetworkPhases})
+	 * 
+	 * @throws Exception
+	 * @see Wrapper
+	 * @see Request
+	 * @see Requests
+	 * @see Response
+	 * @see Responses
+	 * @see NetworkPhases
+	 * @see Server
+	 */
 	public void run() throws Exception
 	{
 		if (s.isClosed())
 		{
+			// TODO
 			Server.getInstance().closeHandler(this);
 		}
 		if (queueEmpty == true)
@@ -824,6 +855,13 @@ public class ServerHandler
 		return cipher.doFinal(encrypted);
 	}
 
+	/**
+	 * Deserializes incoming byte sequence.
+	 * @param b
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 * @throws BadPacketException
+	 */
 	private Object deserialize(byte[] b) throws UnsupportedEncodingException, BadPacketException
 	{
 		String s = new String(b, "UTF8");
@@ -913,23 +951,42 @@ public class ServerHandler
 
 	}
 
+	@SuppressWarnings("unused")
 	private PrivateKey loadPrivateKey(String key) throws GeneralSecurityException, UnsupportedEncodingException
 	{
 		return KeyFactory.getInstance("RSA")
 				.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(key.getBytes("UTF8"))));
 	}
 
+	/**
+	 * Decodes Base64 string to a RSA public key
+	 * @param key
+	 * @return
+	 * @throws GeneralSecurityException
+	 * @throws UnsupportedEncodingException
+	 */
 	public static PublicKey loadPublicKey(String key) throws GeneralSecurityException, UnsupportedEncodingException
 	{
 		return KeyFactory.getInstance("RSA")
 				.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(key.getBytes("UTF8"))));
 	}
 
+	/**
+	 * Encodes a RSA public key to a Base64 string
+	 * @param key
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 */
 	public static String decodePublicKey(PublicKey key) throws UnsupportedEncodingException
 	{
 		return new String(Base64.getEncoder().encode(key.getEncoded()), "UTF8");
 	}
 
+	/**
+	 * Encodes a RSA private key to a Base64 String
+	 * @param key
+	 * @return
+	 */
 	public static String decodePrivateKey(PrivateKey key)
 	{
 		return new String(new PKCS8EncodedKeySpec(key.getEncoded()).getEncoded());

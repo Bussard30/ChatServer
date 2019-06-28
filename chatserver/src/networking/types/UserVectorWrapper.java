@@ -9,8 +9,12 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 
 import main.types.User;
-import networking.logger.Logger;
 
+/**
+ * Used to hold an vector of users
+ * @author Bussard30
+ * @see SearchUserWrapper
+ */
 public class UserVectorWrapper extends Wrapper	
 {
 	private Vector<User> users;
@@ -20,6 +24,10 @@ public class UserVectorWrapper extends Wrapper
 		this.users = users;
 	}
 
+	/**
+	 * Creates UserVectorWrapper object with a string array obtained by {@link #getStrings()}
+	 * @param s
+	 */
 	public UserVectorWrapper(String[] s)
 	{
 		users = new Vector<>();
@@ -43,6 +51,9 @@ public class UserVectorWrapper extends Wrapper
 		}
 	}
 
+	/**
+	 * @return String array required for {@link #CredentialsWrapper(String[])}
+	 */
 	@Override
 	public String[] getStrings()
 	{

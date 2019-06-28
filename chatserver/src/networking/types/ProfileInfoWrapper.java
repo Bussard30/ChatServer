@@ -14,6 +14,11 @@ import main.types.Email;
 import main.types.User;
 import networking.logger.Logger;
 
+/**
+ * Used to hold all information of an user.
+ * @author Bussard30
+ *
+ */
 public class ProfileInfoWrapper extends Wrapper
 {
 	private User user;
@@ -26,7 +31,10 @@ public class ProfileInfoWrapper extends Wrapper
 	{
 		user = new User(null, username, null, status, bi, null, null);
 	}
-	
+	/**
+	 * Creates CredentialsWrapper object with String obtained by {@link #getStrings()}
+	 * @param s
+	 */
 	public ProfileInfoWrapper(String[] s)
 	{
 		Logger.info(s[4]);
@@ -66,7 +74,11 @@ public class ProfileInfoWrapper extends Wrapper
 			}
 
 	}
-
+	
+	/**
+	 * Images are being converted to Base64 strings
+	 * @return String array required for {@link #CredentialsWrapper(String[])}
+	 */
 	@Override
 	public String[] getStrings()
 	{

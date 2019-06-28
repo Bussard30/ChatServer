@@ -5,12 +5,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
-import javax.management.InstanceAlreadyExistsException;
-import javax.tools.Diagnostic;
 
-import networking.logger.Logger;
-
-@SuppressWarnings("NOT WORKING CORRECTLY")
+/**
+ * Does currently not work.
+ * @author Bussard30
+ *
+ */
 public class Diagnostics
 {
 	private static Diagnostics instance;

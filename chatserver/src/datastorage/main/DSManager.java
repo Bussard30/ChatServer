@@ -186,6 +186,35 @@ public class DSManager
 		Logger.info("Updated value.");
 	}
 
+	public void befriendUsers(User u0, User u1)
+	{
+		try
+		{
+			PreparedStatement pS0 = connect.prepareStatement("SELECT * FROM users where userid like ?");
+			PreparedStatement pS1 = connect.prepareStatement("SELECT * FROM users where userid like ?");
+
+			pS0.setBytes(1, u0.getUuid());
+			pS1.setBytes(2, u1.getUuid());
+
+			ResultSet rs0 = pS0.executeQuery();
+			ResultSet rs1 = pS0.executeQuery();
+
+			int i0 = rs0.getInt("id");
+			int i1 = rs1.getInt("id");
+			if (i0 < i1)
+			{
+				PreparedStatement pS2 = connect
+						.prepareStatement("INSERT INTO `friends`(`userid_0`, `userid_1`, `status`) VALUES (?,?,?)");
+				pS2.setInt(1, i0);
+				pS2.setInt(2, i1);
+				pS2.setInt(3, 2);
+			}
+		} catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
 	public Vector<User> searchUser(String name)
 	{
 		PreparedStatement pS = null;
@@ -221,6 +250,58 @@ public class DSManager
 			e.printStackTrace();
 		}
 		return v;
+	}
+
+	private User getUser(ResultSet rs)
+	{
+		try
+		{
+			return new User(new Email(rs.getString("email")), rs.getString("nickname"), rs.getString("password"),
+					rs.getString("description"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
+					rs.getDate("lastonline"), rs.getBytes("userid"));
+		} catch (EmailFormationException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		throw new RuntimeException("Could not get User object of ResultSet");
+	}
+
+	/**
+	 * Get user without password for security reasons
+	 * 
+	 * @param rs
+	 * @return User with password = null
+	 */
+	private User getUserWOPW(ResultSet rs)
+	{
+		try
+		{
+			return new User(new Email(rs.getString("email")), rs.getString("nickname"), null,
+					rs.getString("description"), ImageIO.read(new ByteArrayInputStream(rs.getBytes("profile_pic"))),
+					rs.getDate("lastonline"), rs.getBytes("userid"));
+		} catch (EmailFormationException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		throw new RuntimeException("Could not get User object of ResultSet");
 	}
 
 	@SuppressWarnings("unused")

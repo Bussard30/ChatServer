@@ -2,6 +2,15 @@ package networking.types;
 
 import java.io.Serializable;
 
+/**
+ * Used to hold a message between two clients.<br>
+ * Contains <b>message</b>, <b>source</b>, <b>destination</b>,<br>
+ * whether the message has been <b>received</b> by the server or not,<br>
+ * whether the message has been <b>read</b> by the other client and the <b>message id</b>
+ * 
+ * @author Bussard30
+ *
+ */
 public class MessageWrapper extends Wrapper implements Serializable
 {
 	/**
@@ -12,11 +21,26 @@ public class MessageWrapper extends Wrapper implements Serializable
 	private boolean received, read;
 	private int id;
 
+	/**
+	 * Creates MessageWrapper object.
+	 * @param message
+	 * @param source
+	 * @param destination
+	 */
 	public MessageWrapper(String message, String source, String destination)
 	{
 		this(message, source, destination, false, false, -1);
 	}
 
+	/**
+	 * Creates MessageWrapper object.
+	 * @param message
+	 * @param source
+	 * @param destination
+	 * @param received
+	 * @param read
+	 * @param id
+	 */
 	public MessageWrapper(String message, String source, String destination, boolean received, boolean read, int id)
 	{
 		this.message = message;
@@ -26,6 +50,10 @@ public class MessageWrapper extends Wrapper implements Serializable
 		this.id = id;
 	}
 
+	/**
+	 * Creates CredentialsWrapper object with String obtained by {@link #getStrings()}
+	 * @param s
+	 */
 	public MessageWrapper(String[] s)
 	{
 		message = s[0];
@@ -92,6 +120,9 @@ public class MessageWrapper extends Wrapper implements Serializable
 		this.id = id;
 	}
 
+	/**
+	 * @return String array required for {@link #CredentialsWrapper(String[])}
+	 */
 	@Override
 	public String[] getStrings()
 	{
