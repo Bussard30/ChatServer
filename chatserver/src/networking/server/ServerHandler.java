@@ -130,7 +130,7 @@ public class ServerHandler
 	 * After that it get deserialized (see {@link #deserialize(byte[])}).<br>
 	 * <h1>Interpretation</h1> Now depending on the type of request/response
 	 * and/or the type of the object<br>
-	 * a different response will be triggered <br>
+	 * a different response will be triggered. <br>
 	 * (see {@link Requests} and {@link Responses})
 	 * <h1>The end</h1> Now it is being checked if the conditions for
 	 * advancing<br>

@@ -2,6 +2,8 @@ package networking.server;
 
 import java.security.PublicKey;
 
+import com.mysql.cj.protocol.Protocol;
+
 import networking.types.LoginResponseWrapper;
 import networking.types.MessageWrapper;
 import networking.types.ProfileInfoWrapper;
@@ -10,27 +12,56 @@ import networking.types.UserVectorWrapper;
 
 public enum Responses
 {
-	// RESPONSE TO RSA KEY (exchange)
+
+	/**
+	 * Response to {@link Requests.TRSMT_RSAKEY}.<br>
+	 * Holds a RSA public key.
+	 * @see PublicKey
+	 */
 	RSP_RSAKEY("RSP_RSAKEY", NetworkPhases.PRE0, PublicKey.class),
 
-	// // RESPONSE TO AES KEY (exchange)
-	// RSP_AESKEY("RSP_AESKEY", NetworkPhases.PRE0, Object.class),
-
-	// RESPONSE TO PROTOCOL
+	/**
+	 * Response to {@link Requests.TRSMT_PROTOCOL}.<br>
+	 * Holds client and protocol version of server.
+	 * @see Protocol
+	 */
 	RSP_PROTOCOL("RSP_PROTOCOL", NetworkPhases.PRE1, ProtocolWrapper.class),
 
-	// TRANSMIT (user) CREDENTIALS, responds with new token
+	/**
+	 * Response to {@link Requests.TRSMT_CREDS}<br>
+	 * Holds token and whether client is logged in or not.
+	 * @see LoginResponseWrapper
+	 */
 	RSP_CREDS("RSP_CREDS", NetworkPhases.PRE2, LoginResponseWrapper.class),
 
-	// TRANSMIT (user) CREDENTIALS, responds with new token
+	/**
+	 * Response to {@link Requests.TRSMT_TOKEN}.<br>
+	 * Holds (new) token and whether client is logged in or not.
+	 * @see LoginResponseWrapper
+	 */
 	RSP_TOKEN("RSP_TOKEN", NetworkPhases.PRE2, LoginResponseWrapper.class),
 
+	/**
+	 * Response to {@link Requests.TRSMT_MESSAGE}.<br>
+	 * Holds message id which has been successfully received by the server.
+	 * @see MessageWrapper
+	 */
 	RCV_MESSAGE("RCV_MESSAGE", NetworkPhases.COM, MessageWrapper.class),
 
+	/**
+	 * Response to {@link Requests.REQST_DATA}.<br>
+	 * Holds all information required to load the chatclient.
+	 * @see ProfileInfoWrapper
+	 */
 	RSP_DATA("RSP_DATA", NetworkPhases.COM, ProfileInfoWrapper.class),
 
+	/**
+	 * Response to {@link Requests.SEARCH_USER}.
+	 * Holds a vector of different users.
+	 * @see UserVectorWrapper
+	 */
 	USER_QUERY("USER_QUERY", NetworkPhases.COM, UserVectorWrapper.class),
-	
+
 	;
 	private final String name;
 	private final NetworkPhases np;

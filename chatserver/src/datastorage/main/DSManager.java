@@ -135,6 +135,43 @@ public class DSManager
 		throw new SQLException();
 	}
 
+	public void changeDescription(byte[] uuid, String desc)
+	{
+		try
+		{
+			PreparedStatement preparedStatement1 = connect
+					.prepareStatement("UPDATE users SET description = ? where userid = ?");
+			preparedStatement1.setString(1, desc);
+			preparedStatement1.setBytes(2, uuid);
+			preparedStatement1.executeUpdate();
+		} catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void changeName(byte[] uuid, String name)
+	{
+		try
+		{
+			PreparedStatement preparedStatement1 = connect
+					.prepareStatement("UPDATE users SET name = ? where userid = ?");
+			preparedStatement1.setString(1, name);
+			preparedStatement1.setBytes(2, uuid);
+			preparedStatement1.executeUpdate();
+		} catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void changePassword(byte[] uuid, String name)
+	{
+		
+	}
+	
 	public void changeProfilePic(byte[] uuid, BufferedImage bi)
 	{
 		Logger.info("Bytes of profile pic null");
@@ -186,6 +223,11 @@ public class DSManager
 		Logger.info("Updated value.");
 	}
 
+	/**
+	 * Inserts entry containing the id of u0 and u1 with status = 2
+	 * @param u0
+	 * @param u1
+	 */
 	public void befriendUsers(User u0, User u1)
 	{
 		try
@@ -201,6 +243,7 @@ public class DSManager
 
 			int i0 = rs0.getInt("id");
 			int i1 = rs1.getInt("id");
+			
 			if (i0 < i1)
 			{
 				PreparedStatement pS2 = connect
@@ -208,6 +251,7 @@ public class DSManager
 				pS2.setInt(1, i0);
 				pS2.setInt(2, i1);
 				pS2.setInt(3, 2);
+				pS2.executeUpdate();
 			}
 		} catch (SQLException e)
 		{
@@ -314,7 +358,7 @@ public class DSManager
 			for (int i = 1; i <= columnsNumber; i++)
 			{
 				if (i > 1)
-					System.out.print(",  ");
+					System.out.print(",  "); 
 				String columnValue = rs.getString(i);
 				System.out.print(columnValue + " " + rsmd.getColumnName(i));
 			}
