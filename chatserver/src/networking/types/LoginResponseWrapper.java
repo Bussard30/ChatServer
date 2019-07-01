@@ -39,4 +39,13 @@ public class LoginResponseWrapper extends Wrapper
 	{
 		return new String[]{loggedIn ? "true" : "false", token};
 	}
+	
+	/**
+	 * Returns if login attempt was successful
+	 * @return
+	 */
+	public boolean isLoggedIn()
+	{
+		return loggedIn;
+	}
 }

@@ -40,7 +40,7 @@ public class UserVectorWrapper extends Wrapper
 						s[i + 0],
 						null,
 						null,
-						s[i + 1] != null ? ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(s[4]))) : null,
+						s[i + 1] != null ? ImageIO.read(new ByteArrayInputStream(Base64.getDecoder().decode(s[i + 1]))) : null,
 						null,
 						null));
 			} catch (IOException e)

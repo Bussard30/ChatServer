@@ -1,13 +1,11 @@
 package networking.server;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Random;
@@ -15,6 +13,7 @@ import java.util.Vector;
 
 import main.main.Main;
 import networking.logger.Logger;
+import networking.types.Gate;
 import networking.types.MessageWrapper;
 
 public class Server
@@ -25,15 +24,9 @@ public class Server
 	private ServerSocket serverSocket;
 	private boolean online;
 
-	private BufferedReader in;
-	private PrintWriter out;
-	private boolean passwordRequired;
-
-	private static PrintWriter writer;
-
 	private static Server server;
 
-	private int threadAmount;
+//	private int threadAmount;
 
 	private Vector<ServerThread> threads;
 
@@ -41,7 +34,8 @@ public class Server
 	private volatile Vector<ServerHandler> unassignedHandlers;
 	private volatile HashMap<ServerThread, Vector<ServerHandler>> assignments;
 	private volatile HashMap<String, ServerHandler> uuidAssignments;
-	private volatile HashMap<String, MessageWrapper> messages;
+	private volatile HashMap<byte[], MessageWrapper> messages;
+	private volatile HashMap<Long, Gate> voice;
 
 	private volatile Vector<Integer> numbers;
 
@@ -58,7 +52,8 @@ public class Server
 		unassignedHandlers = new Vector<>();
 		assignments = new HashMap<ServerThread, Vector<ServerHandler>>();
 		uuidAssignments = new HashMap<String, ServerHandler>();
-		messages = new HashMap<String, MessageWrapper>();
+		messages = new HashMap<byte[], MessageWrapper>();
+		voice = new HashMap<>();
 		log("Initialized server.");
 	}
 
@@ -320,30 +315,18 @@ public class Server
 		log("Done.");
 	}
 
-	public String generateToken(int n)
+	public String generateToken()
 	{
-		byte[] array = new byte[256];
+		byte[] array = new byte[32];
 		new Random().nextBytes(array);
-		String randomString = new String(array, Charset.forName("UTF-8"));
-		StringBuffer r = new StringBuffer();
-		for (int k = 0; k < randomString.length(); k++)
-		{
-			char ch = randomString.charAt(k);
-
-			if (((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')) && (n > 0))
-			{
-				r.append(ch);
-				n--;
-			}
-		}
-		return r.toString();
+		return Base64.getEncoder().encodeToString(array);
 	}
 
 	public void startServer(int port, boolean multithreading)
 	{
 		if (multithreading)
 		{
-
+			// TODO
 		}
 	}
 
@@ -375,17 +358,19 @@ public class Server
 		// TODO
 	}
 
-	public MessageWrapper messageDueForUUID(byte[] bs)
+	public MessageWrapper messageDueForUUID(byte[] uuid)
 	{
-		if(messages.containsKey(bs))
+		if(messages.containsKey(uuid))
 		{
-			return messages.get(bs);
+			return messages.get(uuid);
 		}
 		else
 		{
 			return null;
 		}
 	}
+	
+	
 
 	public void splitThread(ServerThread t)
 	{
