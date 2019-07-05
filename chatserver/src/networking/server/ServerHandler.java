@@ -50,6 +50,7 @@ import networking.types.Wrapper;
  * Handles incoming traffic for one client.<br>
  * Initiated by {@link Server}<br>
  * Run method executed by {@link ServerThread}<br>
+ * 
  * @author Bussard30
  *
  */
@@ -82,6 +83,7 @@ public class ServerHandler
 
 	/**
 	 * Generates new server handler to handle socket
+	 * 
 	 * @param s
 	 */
 	public ServerHandler(Socket s)
@@ -109,14 +111,12 @@ public class ServerHandler
 		}
 	}
 
-
 	public ServerHandler(Socket s, DataInputStream in, DataOutputStream out)
 	{
 		this(s);
 		this.out = out;
 		this.in = in;
 	}
-
 
 	/**
 	 * <h1>Connectivity Check</h1> First of all it checks if the server is
@@ -367,18 +367,49 @@ public class ServerHandler
 							case TRSMT_MESSAGE:
 								if (((Request) o).getBuffer() instanceof MessageWrapper)
 								{
+									// Client wants to send a message to another
+									// client
+									if (((MessageWrapper) (((Request) o).getBuffer())).getSource() == null
+											&& ((MessageWrapper) (((Request) o).getBuffer())).getDestination() != null
+											&& ((MessageWrapper) (((Request) o).getBuffer())).getId() != -1
+											&& ((MessageWrapper) (((Request) o).getBuffer())).getMessage() != null
+											&& ((MessageWrapper) (((Request) o).getBuffer())).received() == false)
+									{
+
+										// sends message to destination
+										Server.getInstance().queueMessageForUUID(
+												((MessageWrapper) (((Request) o).getBuffer())).getDestination(),
+												new MessageWrapper(((MessageWrapper) (((Request) o).getBuffer())),
+														true));
+
+										send(new Response(Responses.RCV_MESSAGE.getName(), new MessageWrapper(
+												((MessageWrapper) (((Request) o).getBuffer())).getMessage(),
+												u.getUuid(),
+												((MessageWrapper) (((Request) o).getBuffer())).getDestination(), true,
+												false, false, ((MessageWrapper) (((Request) o).getBuffer())).getId())));
+
+									}
 									if (((MessageWrapper) (((Request) o).getBuffer())).getSource() != null
 											&& ((MessageWrapper) (((Request) o).getBuffer())).getDestination() != null
 											&& ((MessageWrapper) (((Request) o).getBuffer())).getId() != -1
-											&& ((MessageWrapper) (((Request) o).getBuffer())).getMessage() != null)
+											&& ((MessageWrapper) (((Request) o).getBuffer())).getMessage() == null
+											&& ((MessageWrapper) (((Request) o).getBuffer())).received() == true
+											&& ((MessageWrapper) (((Request) o).getBuffer())).receivedByDest() == true
+											|| ((MessageWrapper) (((Request) o).getBuffer())).read() == true)
 									{
-										Server.getInstance()
-												.queueMessageForUUID(((MessageWrapper) (((Request) o).getBuffer())));
-										send(new Response(Responses.RCV_MESSAGE.getName(), new MessageWrapper(
-												((MessageWrapper) (((Request) o).getBuffer())).getMessage(),
-												((MessageWrapper) (((Request) o).getBuffer())).getSource(),
-												((MessageWrapper) (((Request) o).getBuffer())).getDestination(), true,
-												false, ((MessageWrapper) (((Request) o).getBuffer())).getId())));
+										if (((MessageWrapper) (((Request) o).getBuffer())).receivedByDest() == true)
+										{
+											// check if not received by dest
+										}
+										if (((MessageWrapper) (((Request) o).getBuffer())).read() == true)
+										{
+											// check if not read by dest
+										}
+										Server.getInstance().queueMessageForUUID(
+												((MessageWrapper) (((Request) o).getBuffer())).getDestination(),
+												new MessageWrapper(((MessageWrapper) (((Request) o).getBuffer())),
+														((MessageWrapper) (((Request) o).getBuffer())).receivedByDest(),
+														((MessageWrapper) (((Request) o).getBuffer())).read()));
 									}
 								}
 								break;
@@ -421,7 +452,44 @@ public class ServerHandler
 
 					break;
 				case COM:
+					for (Responses r : Responses.values())
+					{
+						if (r.getName().equals(((Response) o).getName()))
+						{
+							switch (r)
+							{
+							case RCV_MESSAGE:
+								if (((MessageWrapper) (((Request) o).getBuffer())).getSource() != null
+										&& ((MessageWrapper) (((Request) o).getBuffer())).getDestination() != null
+										&& ((MessageWrapper) (((Request) o).getBuffer())).getId() != -1
+										&& ((MessageWrapper) (((Request) o).getBuffer())).getMessage() == null
+										&& ((MessageWrapper) (((Request) o).getBuffer())).received() == true
+										&& ((MessageWrapper) (((Request) o).getBuffer())).receivedByDest() == true
+										|| ((MessageWrapper) (((Request) o).getBuffer())).read() == true)
+								{
+									if (((MessageWrapper) (((Request) o).getBuffer())).receivedByDest() == true)
+									{
+										// check if not received by dest
+									}
+									if (((MessageWrapper) (((Request) o).getBuffer())).read() == true)
+									{
+										// check if not read by dest
+									}
+									Server.getInstance().queueMessageForUUID(
+											((MessageWrapper) (((Request) o).getBuffer())).getDestination(),
+											new MessageWrapper(((MessageWrapper) (((Request) o).getBuffer())),
+													((MessageWrapper) (((Request) o).getBuffer())).receivedByDest(),
+													((MessageWrapper) (((Request) o).getBuffer())).read()));
+								}
+								break;
+							case USER_QUERY:
+								break;
+							default:
+								break;
 
+							}
+						}
+					}
 					break;
 				case POST:
 
@@ -469,11 +537,13 @@ public class ServerHandler
 			if (u != null)
 			{
 				MessageWrapper m;
-				if ((m = Server.getInstance().messageDueForUUID(u.getUuid())) != null)
-				{
-					send(new Request(Requests.TRSMT_MESSAGE.getName(), new MessageWrapper(m.getMessage(), m.getSource(),
-							m.getDestination(), true, false, m.getId())));
-				}
+				// if ((m = Server.getInstance().messageDueForUUID(u.getUuid()))
+				// != null)
+				// {
+				// send(new Request(Requests.TRSMT_MESSAGE.getName(), new
+				// MessageWrapper(m.getMessage(), m.getSource(),
+				// m.getDestination(), true, false, m.getId())));
+				// }
 			}
 			break;
 		case POST:
@@ -857,6 +927,7 @@ public class ServerHandler
 
 	/**
 	 * Deserializes incoming byte sequence.
+	 * 
 	 * @param b
 	 * @return
 	 * @throws UnsupportedEncodingException
@@ -873,6 +944,14 @@ public class ServerHandler
 		for (int i = 2; i < temp.length; i++)
 		{
 			data[i - 2] = temp[i];
+		}
+		
+		for(String st : data)
+		{
+			if(st.equals("null"))
+			{
+				st = null;
+			}
 		}
 
 		if (info[0].equals("Req"))
@@ -960,6 +1039,7 @@ public class ServerHandler
 
 	/**
 	 * Decodes Base64 string to a RSA public key
+	 * 
 	 * @param key
 	 * @return
 	 * @throws GeneralSecurityException
@@ -973,6 +1053,7 @@ public class ServerHandler
 
 	/**
 	 * Encodes a RSA public key to a Base64 string
+	 * 
 	 * @param key
 	 * @return
 	 * @throws UnsupportedEncodingException
@@ -984,6 +1065,7 @@ public class ServerHandler
 
 	/**
 	 * Encodes a RSA private key to a Base64 String
+	 * 
 	 * @param key
 	 * @return
 	 */

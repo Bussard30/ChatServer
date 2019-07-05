@@ -1,12 +1,14 @@
 package networking.types;
 
 import java.io.Serializable;
+import java.util.Base64;
 
 /**
  * Used to hold a message between two clients.<br>
  * Contains <b>message</b>, <b>source</b>, <b>destination</b>,<br>
  * whether the message has been <b>received</b> by the server or not,<br>
- * whether the message has been <b>read</b> by the other client and the <b>message id</b>
+ * whether the message has been <b>read</b> by the other client and the
+ * <b>message id</b>
  * 
  * @author Bussard30
  *
@@ -17,23 +19,36 @@ public class MessageWrapper extends Wrapper implements Serializable
 	 * 
 	 */
 	private static final long serialVersionUID = -5667179476964469748L;
-	private String message, source, destination;
-	private boolean received, read;
+	private String message;
+	private byte[] source, destination;
+	private boolean received, receivedByDest, read;
 	private int id;
 
 	/**
 	 * Creates MessageWrapper object.
+	 * 
 	 * @param message
 	 * @param source
 	 * @param destination
 	 */
-	public MessageWrapper(String message, String source, String destination)
+	public MessageWrapper(String message, byte[] source, byte[] destination)
 	{
-		this(message, source, destination, false, false, -1);
+		this(message, source, destination, false, false, false, -1);
+	}
+
+	public MessageWrapper(MessageWrapper m, boolean received)
+	{
+		this(m.getMessage(), m.getSource(), m.getDestination(), received, m.receivedByDest(), m.read(), m.getId());
+	}
+
+	public MessageWrapper(MessageWrapper m, boolean receivedByDest, boolean read)
+	{
+		this(m.getMessage(), m.getSource(), m.getDestination(), m.received(), receivedByDest, read, m.getId());
 	}
 
 	/**
 	 * Creates MessageWrapper object.
+	 * 
 	 * @param message
 	 * @param source
 	 * @param destination
@@ -41,29 +56,34 @@ public class MessageWrapper extends Wrapper implements Serializable
 	 * @param read
 	 * @param id
 	 */
-	public MessageWrapper(String message, String source, String destination, boolean received, boolean read, int id)
+	public MessageWrapper(String message, byte[] source, byte[] destination, boolean received, boolean receivedByDest,
+			boolean read, int id)
 	{
 		this.message = message;
 		this.source = source;
 		this.destination = destination;
 		this.received = received;
 		this.id = id;
+		this.receivedByDest = receivedByDest;
 	}
 
 	/**
-	 * Creates CredentialsWrapper object with String obtained by {@link #getStrings()}
+	 * Creates CredentialsWrapper object with String obtained by
+	 * {@link #getStrings()}
+	 * 
 	 * @param s
 	 */
 	public MessageWrapper(String[] s)
 	{
 		message = s[0];
-		source = s[1];
-		s[2] = destination;
+		source = Base64.getDecoder().decode(s[1]);
+		destination = Base64.getDecoder().decode(s[2]);
 		received = s[3].equals("true") ? true : false;
-		read = s[4].equals("true") ? true : false;
+		receivedByDest = s[4].equals("true") ? true : false;
+		read = s[5].equals("true") ? true : false;
 		try
 		{
-			id = Integer.parseInt(s[5]);
+			id = Integer.parseInt(s[6]);
 		} catch (Throwable t)
 		{
 			throw new RuntimeException("Parameter 5 cannot be converted to an int");
@@ -75,49 +95,34 @@ public class MessageWrapper extends Wrapper implements Serializable
 		return message;
 	}
 
-	public void setMessage(String message)
-	{
-		this.message = message;
-	}
-
-	public String getSource()
+	public byte[] getSource()
 	{
 		return source;
 	}
 
-	public void setSource(String source)
-	{
-		this.source = source;
-	}
-
-	public String getDestination()
+	public byte[] getDestination()
 	{
 		return destination;
 	}
 
-	public void setDestination(String destination)
-	{
-		this.destination = destination;
-	}
-
-	public boolean isReceived()
+	public boolean received()
 	{
 		return received;
 	}
 
-	public void setReceived(boolean received)
+	public boolean read()
 	{
-		this.received = received;
+		return read;
+	}
+
+	public boolean receivedByDest()
+	{
+		return receivedByDest;
 	}
 
 	public int getId()
 	{
 		return id;
-	}
-
-	public void setId(int id)
-	{
-		this.id = id;
 	}
 
 	/**
@@ -127,7 +132,9 @@ public class MessageWrapper extends Wrapper implements Serializable
 	public String[] getStrings()
 	{
 		return new String[]
-		{ message, source, destination, received ? "true" : "false", read ? "true" : "false", String.valueOf(id) };
+		{ message, Base64.getEncoder().encodeToString(source), Base64.getEncoder().encodeToString(destination),
+				received ? "true" : "false", receivedByDest ? "true" : "false", read ? "true" : "false",
+				String.valueOf(id) };
 	}
 
 }

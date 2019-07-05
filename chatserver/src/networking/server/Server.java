@@ -26,7 +26,7 @@ public class Server
 
 	private static Server server;
 
-//	private int threadAmount;
+	// private int threadAmount;
 
 	private Vector<ServerThread> threads;
 
@@ -353,24 +353,23 @@ public class Server
 		return i;
 	}
 
-	public void queueMessageForUUID(MessageWrapper message)
+	public void queueMessageForUUID(byte[] uuid, MessageWrapper message)
 	{
-		// TODO
+		messages.put(uuid, message);
 	}
 
-	public MessageWrapper messageDueForUUID(byte[] uuid)
+	public MessageWrapper messageDueForUUID(byte[] uuid) throws NoSuchElementException
 	{
-		if(messages.containsKey(uuid))
+		if (messages.containsKey(uuid))
 		{
-			return messages.get(uuid);
-		}
-		else
+			MessageWrapper m = messages.get(uuid);
+			messages.remove(uuid);
+			return m;
+		} else
 		{
-			return null;
+			throw new NoSuchElementException();
 		}
 	}
-	
-	
 
 	public void splitThread(ServerThread t)
 	{
