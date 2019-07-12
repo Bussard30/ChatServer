@@ -31,13 +31,16 @@ public abstract class Wrapper
 		{
 			for(Constructor<?> c : wrapper.getDeclaredConstructors())
 			{
-				if(c.getParameterTypes()[0].equals(String[].class) && c.getParameterTypes().length == 1)
+				if(c.getParameters().length == 1)
 				{
-					for(Parameter p : c.getParameters())
+					if(c.getParameterTypes()[0].equals(String[].class))
 					{
-						System.out.println(p.getName());
+						for(Parameter p : c.getParameters())
+						{
+							System.out.println(p.getName());
+						}
+						return (Wrapper) c.newInstance((Object)s);
 					}
-					return (Wrapper) c.newInstance((Object)s);
 				}
 			}
 		} catch (InstantiationException e)
