@@ -17,9 +17,9 @@ public class Logger
 		sdf = new SimpleDateFormat("HH:mm:ss:SSS");
 	}
 	
-	public static void info(String info)
+	public static void info(String s)
 	{
-		System.out.println("[" + getTime() + "]" + "[INFO]" + info);
+		System.out.println("[" + getTime() + "]" + "[INFO]" + ((s.length() > 100) ? s.substring(0, 99) : s));
 	}
 
 	public static void info(String source, String info)
@@ -44,11 +44,11 @@ public class Logger
 
 	private static void print(String prefix, String s)
 	{
-		System.out.println("[" + getTime() + "]" + "[" + prefix + "]" + s);
+		System.out.println("[" + getTime() + "]" + "[" + prefix + "]" + ((s.length() > 100) ? s.substring(0, 99) : s));
 	}
 
 	private static void print(String prefix, String source, String s)
 	{
-		System.out.println("[" + getTime() + "]" + "[" + prefix + "]" + "[" + source + "]" + s);
+		System.out.println("[" + getTime() + "]" + "[" + prefix + "]" + "[" + source + "]" + ((s.length() > 100) ? s.substring(0, 99) : s));
 	}
 }
