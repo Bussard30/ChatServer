@@ -20,8 +20,8 @@ public class SearchUserWrapper extends Wrapper
 	 */
 	public SearchUserWrapper(String[] s)
 	{
-		if (s.length == 1)
-			name = s[0];
+		if(s.length != 1) throw new RuntimeException("Too many parameters(" + s.length + ")");
+		name = s[0];
 	}
 
 	/**

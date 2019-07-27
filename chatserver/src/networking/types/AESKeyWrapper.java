@@ -7,6 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Used to hold an AESKey
+ * 
  * @author Bussard30
  *
  */
@@ -25,18 +26,17 @@ public class AESKeyWrapper extends Wrapper
 	}
 
 	/**
-	 * Creates AESKeyWrapper Object using strings gathered from {@link #getStrings}
+	 * Creates AESKeyWrapper Object using strings gathered from
+	 * {@link #getStrings}
+	 * 
 	 * @param s
 	 */
 	public AESKeyWrapper(String[] s)
 	{
-		if (s.length == 1)
-		{
-			key = new SecretKeySpec(Base64.getDecoder().decode(s[0]), "AES");
-		} else
-		{
-			throw new RuntimeException("Invalid amount of arguments");
-		}
+		if (s.length != 1)
+			throw new RuntimeException("Too many parameters(" + s.length + ")");
+		key = new SecretKeySpec(Base64.getDecoder().decode(s[0]), "AES");
+
 	}
 
 	/**
@@ -51,7 +51,8 @@ public class AESKeyWrapper extends Wrapper
 
 	/**
 	 * 
-	 * @return AES key required for encryption and decryption in server/client communication
+	 * @return AES key required for encryption and decryption in server/client
+	 *         communication
 	 */
 	public SecretKey getKey()
 	{

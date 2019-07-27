@@ -218,7 +218,6 @@ public class ServerHandler
 			Object o = deserialize(b);
 			if (o instanceof Request)
 			{
-
 				switch (phase)
 				{
 				case PRE0:
@@ -337,7 +336,7 @@ public class ServerHandler
 									}
 								} else
 								{
-									Logger.info("Invalid user credentials.");
+									Logger.info("Couldn't recognize user credentials.");
 									send(new Response(Responses.RSP_CREDS.getName(),
 											new LoginResponseWrapper(false, "null")));
 								}
@@ -844,7 +843,12 @@ public class ServerHandler
 		Logger.info(o.getClass().getName());
 		if (o instanceof Wrapper)
 		{
-			return ((networking.types.Wrapper) o).getStrings();
+			String[] s = ((networking.types.Wrapper) o).getStrings();
+			for (int i = 0; i < s.length; i++)
+			{
+				s[i] = s[i].replace(";", "U+003B");
+			}
+			return s;
 		}
 		if (o instanceof Key)
 		{
@@ -861,7 +865,7 @@ public class ServerHandler
 		if (o instanceof String)
 		{
 			return new String[]
-			{ (String) o };
+			{ ((String) o).replace(";", "U+003B") };
 		}
 		if (o instanceof Boolean)
 		{
@@ -941,17 +945,21 @@ public class ServerHandler
 		String[] info = new String[]
 		{ temp[0], temp[1] };
 		String[] data = new String[temp.length - 2];
+
 		for (int i = 2; i < temp.length; i++)
 		{
 			data[i - 2] = temp[i];
 		}
-		
-		for(String st : data)
+
+		for (int i = 0; i < data.length; i++)
 		{
-			if(st.equals("null"))
+			if (data[i].equals("null"))
 			{
-				st = null;
-			}
+				data[i] = null;
+			} /**
+				 * else if (data[i].contains("U+003B")) { Logger.info("Replacing
+				 * ; character"); data[i] = data[i].replace("U+003B", ";"); }
+				 */
 		}
 
 		if (info[0].equals("Req"))
@@ -965,8 +973,14 @@ public class ServerHandler
 					{
 						if (r.getType().getSuperclass().equals(Wrapper.class))
 						{
-							return new Request(info[1],
-									Wrapper.getWrapper((Class<? extends Wrapper>) r.getType(), data));
+							try
+							{
+								return new Request(info[1],
+										Wrapper.getWrapper((Class<? extends Wrapper>) r.getType(), data));
+							} catch (Throwable t)
+							{
+								Logger.error(t);
+							}
 						}
 					} else if (r.getType().equals(PublicKey.class))
 					{
@@ -988,7 +1002,7 @@ public class ServerHandler
 					}
 				}
 			}
-			throw new BadPacketException("Package malfunctional");
+			throw new BadPacketException("Package malfunctional.");
 		} else if (info[0].equals("Res"))
 		{
 			for (Responses r : Responses.values())

@@ -75,6 +75,7 @@ public class MessageWrapper extends Wrapper implements Serializable
 	 */
 	public MessageWrapper(String[] s)
 	{
+		if(s.length != 7) throw new RuntimeException("Too many parameters(" + s.length + ")");
 		message = s[0];
 		source = Base64.getDecoder().decode(s[1]);
 		destination = Base64.getDecoder().decode(s[2]);

@@ -22,6 +22,7 @@ public class TokenWrapper extends Wrapper
 	 */
 	public TokenWrapper(String[] s)
 	{
+		if(s.length != 1) throw new RuntimeException("Too many parameters(" + s.length + ")");
 		token = s[0];
 	}
 

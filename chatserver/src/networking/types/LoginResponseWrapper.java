@@ -27,6 +27,7 @@ public class LoginResponseWrapper extends Wrapper
 	 */
 	public LoginResponseWrapper(String[] s)
 	{
+		if(s.length != 2) throw new RuntimeException("Too many parameters(" + s.length + ")");
 		loggedIn = s[0].equals("true") ? true : false;
 		token = s[1];
 	}

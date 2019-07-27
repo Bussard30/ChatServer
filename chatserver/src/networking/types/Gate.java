@@ -24,6 +24,7 @@ public class Gate
 	
 	/**
 	 * Sends request from ServerHandler h to other ServerHandler
+	 * Please detail further future me
 	 * @param h 
 	 * @param r
 	 */

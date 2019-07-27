@@ -32,9 +32,9 @@ public class Logger
 		return sdf.format(Calendar.getInstance().getTime());
 	}
 
-	public static void error(Exception error)
+	public static void error(Throwable t)
 	{
-		print("ERROR", error.getMessage());
+		print("ERROR", t.getMessage());
 	}
 
 	public static void error(String source, Throwable error)
