@@ -11,6 +11,9 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Vector;
 
+import org.openjdk.jol.info.ClassLayout;
+import org.openjdk.jol.vm.VM;
+
 import main.main.Main;
 import networking.logger.Logger;
 import networking.types.Gate;
@@ -38,6 +41,7 @@ public class Server
 	private volatile HashMap<Long, Gate> voice;
 
 	private volatile Vector<Integer> numbers;
+	public Object dsmlock = new Object();
 
 	/**
 	 * Creates a new server with a dynamic amount of threads
@@ -65,6 +69,16 @@ public class Server
 	@Deprecated
 	public void startServer()
 	{
+		synchronized (dsmlock)
+		{
+			try
+			{
+				dsmlock.wait();
+			} catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
 		// starts server thread
 		acceptorThread = new Thread()
 		{
@@ -118,6 +132,7 @@ public class Server
 				}
 			}
 		};
+		acceptorThread.setName("Connection-negotiator");
 		acceptorThread.start();
 		new Thread(new Runnable()
 		{
@@ -166,7 +181,7 @@ public class Server
 			{
 				while (online)
 				{
-					Diagnostics.getInstance().printStuff();
+
 				}
 				try
 				{
@@ -178,8 +193,8 @@ public class Server
 				}
 			}
 		}).start();
-	}
 
+	}
 	/**
 	 * 
 	 * @param port
@@ -193,7 +208,6 @@ public class Server
 			@Override
 			public void run()
 			{
-				this.setName("Server Thread");
 				online = true;
 				try
 				{
@@ -244,6 +258,7 @@ public class Server
 				}
 			}
 		};
+		acceptorThread.setName("Connection-negotiator");
 		acceptorThread.start();
 		distributorThread = new Thread(new Runnable()
 		{
@@ -251,10 +266,14 @@ public class Server
 			@Override
 			public void run()
 			{
+				/**
+				 * to be removed
+				 */
 				Vector<ServerHandler> tbr = new Vector<>();
+
 				while (online)
 				{
-					for (ServerHandler h : unassignedHandlers)
+					unassignedHandlers.forEach(h ->
 					{
 						try
 						{
@@ -274,11 +293,8 @@ public class Server
 
 						tbr.add(h);
 						log("Assigned ServerHandler to state: UNASSIGNED");
-					}
-					for (ServerHandler h : tbr)
-					{
-						unassignedHandlers.remove(h);
-					}
+					});
+					tbr.forEach(h -> unassignedHandlers.remove(h));
 					try
 					{
 						Thread.sleep(0, 500000);
@@ -290,7 +306,9 @@ public class Server
 				}
 			}
 		});
+		distributorThread.setName("Connection-distributor");
 		distributorThread.start();
+
 		new Thread(new Runnable()
 		{
 
@@ -299,7 +317,29 @@ public class Server
 			{
 				while (online)
 				{
-					Diagnostics.getInstance().printStuff();
+//					Logger.info("Doing something");
+//					Field[] attributes = server.getClass().getDeclaredFields();
+//					Logger.info("Count" + attributes.length);
+//					for (Field field : attributes)
+//					{
+//						// Dynamically read Attribute Name
+//						System.out.print("ATTRIBUTE NAME: " + field.getName());
+//
+//						try
+//						{
+//							Object o = new Object();
+//							field.get(o);
+//							printObjectSize(o);
+//							System.out.println();
+//						} catch (Exception e)
+//						{
+//							System.out.println("<ERROR;Could not retrieve object.>");
+//						}
+//
+//					}
+					
+//			        System.out.println(VM.current().details());
+//			        assignments.forEach((k,v)-> v.forEach(h -> System.out.println(ClassLayout.parseClass(h.getClass()).toPrintable())));
 					try
 					{
 						Thread.sleep(1500);
@@ -394,7 +434,11 @@ public class Server
 
 	public void closeHandler(ServerHandler sh)
 	{
-		// TODO
+		assignments.forEach((t, v) ->
+		{
+			if (v.contains(sh))
+				v.remove(sh);
+		});
 	}
 
 	public Vector<ServerHandler> getAssigments(ServerThread t)

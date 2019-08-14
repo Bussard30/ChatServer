@@ -4,6 +4,7 @@ import java.security.PublicKey;
 
 import com.mysql.cj.protocol.Protocol;
 
+import networking.types.ByteArrayWrapper;
 import networking.types.LoginResponseWrapper;
 import networking.types.MessageWrapper;
 import networking.types.ProfileInfoWrapper;
@@ -69,6 +70,8 @@ public enum Responses
 	 * @see UserVectorWrapper
 	 */
 	USER_QUERY("USER_QUERY", NetworkPhases.COM, UserVectorWrapper.class),
+	
+	RSP_PING("RSP_PING", NetworkPhases.COM, ByteArrayWrapper.class),
 
 	;
 	private final String name;

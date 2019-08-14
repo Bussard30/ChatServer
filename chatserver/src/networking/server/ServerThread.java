@@ -1,8 +1,6 @@
 package networking.server;
 
-import java.util.concurrent.TimeUnit;
-
-import networking.logger.Logger;
+import java.util.ConcurrentModificationException;
 
 /**
  * Workaround for Thread not being able to access itself
@@ -38,26 +36,31 @@ public class ServerThread
 			{
 				while(Server.getInstance().isOnline())
 				{
-					for(ServerHandler h : Server.getInstance().getAssigments(st))
+					try
 					{
-						try
+						for(ServerHandler h : Server.getInstance().getAssigments(st))
 						{
-							Diagnostics.getInstance().process(h, true);
-							h.run();
 							try
 							{
-								Thread.sleep(0, 500000);
-							} catch (InterruptedException e)
+								Diagnostics.getInstance().process(h, true);
+								h.run();
+								try
+								{
+									Thread.sleep(0, 500000);
+								} catch (InterruptedException e)
+								{
+									e.printStackTrace();
+								}
+								Diagnostics.getInstance().process(h, false);
+							} catch (Exception e)
 							{
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							Diagnostics.getInstance().process(h, false);
-						} catch (Exception e)
-						{
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						}
+					} catch (ConcurrentModificationException e)
+					{
+						e.printStackTrace();
 					}
 					try
 					{

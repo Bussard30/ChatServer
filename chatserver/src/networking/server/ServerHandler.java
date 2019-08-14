@@ -3,11 +3,11 @@ package networking.server;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -22,6 +22,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.sql.SQLException;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Random;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -35,6 +36,7 @@ import main.types.User;
 import networking.exceptions.BadPacketException;
 import networking.logger.Logger;
 import networking.types.AESKeyWrapper;
+import networking.types.ByteArrayWrapper;
 import networking.types.CredentialsWrapper;
 import networking.types.LoginResponseWrapper;
 import networking.types.MessageWrapper;
@@ -81,6 +83,10 @@ public class ServerHandler
 
 	private SecretKey key;
 
+	private long lastPing;
+	private boolean pinging;
+	private byte[] ping;
+
 	/**
 	 * Generates new server handler to handle socket
 	 * 
@@ -109,6 +115,26 @@ public class ServerHandler
 		{
 			networkphaseprogress.get(phase)[i] = false;
 		}
+		try
+		{
+			s.setSoTimeout(3000);
+		} catch (SocketException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try
+		{
+			s.setKeepAlive(false);
+		} catch (SocketException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		lastPing = System.currentTimeMillis();
+		
+		ping = new byte[32];
+		new Random().nextBytes(ping);
 	}
 
 	public ServerHandler(Socket s, DataInputStream in, DataOutputStream out)
@@ -117,6 +143,8 @@ public class ServerHandler
 		this.out = out;
 		this.in = in;
 	}
+
+	boolean bbbb = false;
 
 	/**
 	 * <h1>Connectivity Check</h1> First of all it checks if the server is
@@ -150,10 +178,13 @@ public class ServerHandler
 	 */
 	public void run() throws Exception
 	{
-		if (s.isClosed())
+
+		if (s.isClosed() || !s.isConnected() || s.isInputShutdown() || s.isOutputShutdown())
 		{
-			// TODO
+			s.close();
+			Logger.info(s.getInetAddress().getHostAddress() + " has disconnected.");
 			Server.getInstance().closeHandler(this);
+			return;
 		}
 		if (queueEmpty == true)
 		{
@@ -161,12 +192,26 @@ public class ServerHandler
 			millis = System.currentTimeMillis();
 		} else
 		{
-			if (millis - System.currentTimeMillis() > 5000)
+			if (millis - System.currentTimeMillis() > 50)
 			{
 				Server.getInstance().overloadDetected(this);
 			}
 		}
 		byte b[] = null;
+
+		if (System.currentTimeMillis() - lastPing > 5000 && !pinging)
+		{
+			ping();
+			lastPing = System.currentTimeMillis();
+			pinging = true;
+		} else if (System.currentTimeMillis() - lastPing > 10000 && pinging)
+		{
+			s.close();
+			Logger.info(s.getInetAddress().getHostAddress() + " has disconnected.");
+			Server.getInstance().closeHandler(this);
+			return;
+		}
+
 		while (in.available() != 0)
 		{
 			Logger.info(s.getInetAddress().getHostAddress(), "Received bytes...");
@@ -177,8 +222,13 @@ public class ServerHandler
 				int ch3 = in.read();
 				int ch4 = in.read();
 				if ((ch1 | ch2 | ch3 | ch4) < 0)
-					// inputstream already ended
-					throw new EOFException();
+				{
+					s.close();
+					Logger.info(s.getInetAddress().getHostAddress() + " has disconnected.");
+					Server.getInstance().closeHandler(this);
+					// throw new EOFException();
+					return;
+				}
 				int length = ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
 				b = new byte[length];
 				for (int a = 0; a < length; a++)
@@ -228,6 +278,13 @@ public class ServerHandler
 						{
 							switch (r)
 							{
+							case REQST_PING:
+								if (((Request) o).getBuffer() instanceof ByteArrayWrapper)
+								{
+									send(new Response(Responses.RSP_PING.getName(),
+											((ByteArrayWrapper) ((Request) o).getBuffer()).getBytes()));
+								}
+								break;
 							case TRSMT_RSAKEY:
 								if (((Request) o).getBuffer() instanceof PublicKey)
 								{
@@ -256,6 +313,13 @@ public class ServerHandler
 						{
 							switch (r)
 							{
+							case REQST_PING:
+								if (((Request) o).getBuffer() instanceof ByteArrayWrapper)
+								{
+									send(new Response(Responses.RSP_PING.getName(),
+											((ByteArrayWrapper) ((Request) o).getBuffer()).getBytes()));
+								}
+								break;
 							case TRSMT_AESKEY:
 								Logger.info("Received AES key...");
 								if (((Request) o).getBuffer() instanceof AESKeyWrapper)
@@ -310,10 +374,16 @@ public class ServerHandler
 						{
 							switch (r)
 							{
+							case REQST_PING:
+								if (((Request) o).getBuffer() instanceof ByteArrayWrapper)
+								{
+									send(new Response(Responses.RSP_PING.getName(),
+											((ByteArrayWrapper) ((Request) o).getBuffer()).getBytes()));
+								}
+								break;
 							case TRSMT_CREDS:
 								if (((Request) o).getBuffer() instanceof CredentialsWrapper)
 								{
-
 									try
 									{
 										this.u = DSManager.getInstance().getUser(
@@ -363,6 +433,13 @@ public class ServerHandler
 						{
 							switch (r)
 							{
+							case REQST_PING:
+								if (((Request) o).getBuffer() instanceof ByteArrayWrapper)
+								{
+									send(new Response(Responses.RSP_PING.getName(),
+											((ByteArrayWrapper) ((Request) o).getBuffer()).getBytes()));
+								}
+								break;
 							case TRSMT_MESSAGE:
 								if (((Request) o).getBuffer() instanceof MessageWrapper)
 								{
@@ -432,7 +509,24 @@ public class ServerHandler
 					}
 					break;
 				case POST:
-
+					for (Requests r : Requests.values())
+					{
+						if (r.getName().equals(((Request) o).getName()))
+						{
+							switch (r)
+							{
+							case REQST_PING:
+								if (((Request) o).getBuffer() instanceof ByteArrayWrapper)
+								{
+									send(new Response(Responses.RSP_PING.getName(),
+											((ByteArrayWrapper) ((Request) o).getBuffer()).getBytes()));
+								}
+								break;
+							default:
+								break;
+							}
+						}
+					}
 					break;
 				default:
 					throw new RuntimeException("Networkphase could not be identified.");
@@ -442,13 +536,58 @@ public class ServerHandler
 				switch (phase)
 				{
 				case PRE0:
-
+					for (Responses r : Responses.values())
+					{
+						if (r.getName().equals(((Response) o).getName()))
+						{
+							switch (r)
+							{
+							case RSP_PING:
+								Logger.info("TLD: " + (System.currentTimeMillis() - lastPing));
+								lastPing = System.currentTimeMillis();
+								pinging = false;
+								break;
+							default:
+								break;
+							}
+						}
+					}
 					break;
 				case PRE1:
-
+					for (Responses r : Responses.values())
+					{
+						if (r.getName().equals(((Response) o).getName()))
+						{
+							switch (r)
+							{
+							case RSP_PING:
+								Logger.info("TLD: " + (System.currentTimeMillis() - lastPing));
+								lastPing = System.currentTimeMillis();
+								pinging = false;
+								break;
+							default:
+								break;
+							}
+						}
+					}
 					break;
 				case PRE2:
-
+					for (Responses r : Responses.values())
+					{
+						if (r.getName().equals(((Response) o).getName()))
+						{
+							switch (r)
+							{
+							case RSP_PING:
+								Logger.info("TLD: " + (System.currentTimeMillis() - lastPing));
+								lastPing = System.currentTimeMillis();
+								pinging = false;
+								break;
+							default:
+								break;
+							}
+						}
+					}
 					break;
 				case COM:
 					for (Responses r : Responses.values())
@@ -457,6 +596,11 @@ public class ServerHandler
 						{
 							switch (r)
 							{
+							case RSP_PING:
+								Logger.info("TLD: " + (System.currentTimeMillis() - lastPing));
+								lastPing = System.currentTimeMillis();
+								pinging = false;
+								break;
 							case RCV_MESSAGE:
 								if (((MessageWrapper) (((Request) o).getBuffer())).getSource() != null
 										&& ((MessageWrapper) (((Request) o).getBuffer())).getDestination() != null
@@ -491,7 +635,22 @@ public class ServerHandler
 					}
 					break;
 				case POST:
-
+					for (Responses r : Responses.values())
+					{
+						if (r.getName().equals(((Response) o).getName()))
+						{
+							switch (r)
+							{
+							case RSP_PING:
+								Logger.info("TLD: " + (System.currentTimeMillis() - lastPing));
+								lastPing = System.currentTimeMillis();
+								pinging = false;
+								break;
+							default:
+								break;
+							}
+						}
+					}
 					break;
 				default:
 					throw new RuntimeException("Networkphase could not be identified.");
@@ -551,6 +710,17 @@ public class ServerHandler
 			break;
 		default:
 			throw new RuntimeException("Networkphase could not be identified.");
+		}
+	}
+
+	private void ping()
+	{
+		try
+		{
+			send(new Request(Requests.REQST_PING.getName(), new ByteArrayWrapper(ping)));
+		} catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 	}
 
