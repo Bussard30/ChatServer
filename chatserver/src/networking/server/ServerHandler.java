@@ -101,7 +101,6 @@ public class ServerHandler
 			kpg = KeyPairGenerator.getInstance("RSA");
 		} catch (NoSuchAlgorithmException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		kpg.initialize(3072);
@@ -242,7 +241,7 @@ public class ServerHandler
 
 				} else
 				{
-					//
+					
 				}
 			}
 			Logger.info("Decrypting in phase " + phase.name());
@@ -303,7 +302,6 @@ public class ServerHandler
 							}
 						}
 					}
-
 					break;
 				case PRE1:
 					Logger.info("Received request in " + phase.name());
